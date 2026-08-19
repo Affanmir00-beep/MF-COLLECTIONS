@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme {
+  --color-base: #FFFFFF;
+  --color-surface: #FFFFFF;
+  --color-primary: #000000;
+  --color-accent: #000000;
+  --color-accent-light: #333333;
+  --color-border: #E5E5E5;
+  --color-sale: #000000;
+
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+}
+
+/* Base styles */
+@layer base {
+  body {
+    background-color: var(--color-base);
+    color: var(--color-primary);
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif);
+    font-weight: 400; /* Editorial usually uses lighter weights */
+  }
+
+  /* Custom scrollbar for webkit */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-base);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent-light);
+  }
+}
