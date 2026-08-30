@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import apiClient from '../api/apiClient';
 import HeroSlider from '../components/home/HeroSlider';
 import CollectionsGrid from '../components/home/CollectionsGrid';
 import WatchAndBuy from '../components/home/WatchAndBuy';
@@ -10,14 +11,14 @@ import StoreLocator from '../components/home/StoreLocator';
 import SpottedGallery from '../components/home/SpottedGallery';
 
 const HomePage = () => {
-  const [config, setConfig] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
+  const [config, setConfig] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     window.scrollTo(0, 0);
     const fetchConfig = async () => {
       try {
-        const { data } = await import('axios').then(axios => axios.default.get('/api/v1/content/homepage'));
+        const { data } = await apiClient.get('/content/homepage');
         setConfig(data);
       } catch (err) {
         console.error('Failed to load homepage config', err);

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { X, Plus, Minus, Phone, Mail, MapPin } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
-import axios from 'axios';
+import apiClient from '../../api/apiClient';
 
 const NavDrawer = ({ isOpen, onClose }) => {
   const userInfo = useAuthStore(state => state.userInfo);
@@ -10,7 +10,7 @@ const NavDrawer = ({ isOpen, onClose }) => {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    axios.get('/api/v1/categories')
+    apiClient.get('/categories')
       .then(res => setCategories(res.data || []))
       .catch(() => {});
   }, []);
