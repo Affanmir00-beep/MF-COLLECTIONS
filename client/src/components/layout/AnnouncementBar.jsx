@@ -1,31 +1,31 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { mockApi } from '../../data/mockApi';
+import { mockData } from '../../data/mockData';
 
 const AnnouncementBar = () => {
+  const [announcements, setAnnouncements] = useState([]);
+
+  useEffect(() => {
+    // In a real app we might fetch this, here we can just use the mockData object synchronously or pretend to fetch
+    setAnnouncements(mockData.announcements);
+  }, []);
+
+  if (!announcements.length) return null;
+
   return (
-    <div className="bg-[var(--color-primary)] text-[var(--color-base)] text-xs md:text-sm py-2 overflow-hidden whitespace-nowrap relative flex items-center justify-center">
-      <motion.div
-        className="inline-block"
-        animate={{ x: [0, -1000] }}
-        transition={{
-          repeat: Infinity,
-          ease: "linear",
-          duration: 30
-        }}
-      >
-        <span className="mx-4 uppercase tracking-wider font-sans">Nationwide Free Shipping Over Rs. 5,000</span>
-        <span className="mx-4">|</span>
-        <span className="mx-4 uppercase tracking-wider font-sans">Cash on Delivery (COD) Available Across Pakistan</span>
-        <span className="mx-4">|</span>
-        <span className="mx-4 uppercase tracking-wider font-sans">Nationwide Free Shipping Over Rs. 5,000</span>
-        <span className="mx-4">|</span>
-        <span className="mx-4 uppercase tracking-wider font-sans">Cash on Delivery (COD) Available Across Pakistan</span>
-      </motion.div>
-      
-      {/* Absolute currency toggle - simplified for prototype */}
-      <div className="absolute right-4 hidden md:flex items-center gap-2 text-xs font-sans">
-        <span className="text-gray-300">PKR</span>
-        <span className="text-gray-500 cursor-pointer hover:text-white transition-colors">USD</span>
+    <div className="bg-[var(--color-accent)] text-[#FAF8F5] text-[11px] md:text-[13px] py-2 overflow-hidden whitespace-nowrap flex items-center w-full">
+      <div className="flex w-max animate-marquee">
+        {/* Duplicate the items multiple times for a seamless infinite scroll effect */}
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="flex items-center shrink-0">
+            {announcements.map((text, j) => (
+              <React.Fragment key={`${i}-${j}`}>
+                <span className="mx-8 mf-label text-[#FAF8F5] tracking-[0.1em]">{text}</span>
+                <span className="text-[#FAF8F5]/30 text-[10px]">•</span>
+              </React.Fragment>
+            ))}
+          </div>
+        ))}
       </div>
     </div>
   );

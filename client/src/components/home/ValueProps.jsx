@@ -34,7 +34,7 @@ const ValueProps = () => {
               <div className="text-[var(--color-accent)] mb-4">
                 {prop.icon}
               </div>
-              <h3 className="font-serif text-lg text-[var(--color-primary)] tracking-wider mb-2">{prop.title}</h3>
+              <h3 className="font-serif text-lg text-[var(--color-text)] tracking-wider mb-2">{prop.title}</h3>
               <p className="font-sans text-sm text-gray-500">{prop.desc}</p>
             </div>
           ))}

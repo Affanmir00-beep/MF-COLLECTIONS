@@ -1,79 +1,110 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Search, ShoppingBag, Heart, Menu, User } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
-import { useWishlist } from '../../context/WishlistContext';
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, Search, User, ShoppingBag, X } from 'lucide-react';
+import useCartStore from '../../store/cartStore';
+import useUIStore from '../../store/uiStore';
+import useAuthStore from '../../store/authStore';
 
 const Navbar = ({ onOpenMobileMenu }) => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const { cartCount, openCart } = useCart();
-  const { wishlistItems } = useWishlist();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const navigate = useNavigate();
+
+  const cartItems = useCartStore(state => state.items);
+  const openCart = useUIStore(state => state.openCart);
+  const userInfo = useAuthStore(state => state.userInfo);
+  
+  const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(window.scrollY > 40);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchKeyword.trim()) {
+      setIsSearchOpen(false);
+      navigate(`/collection?keyword=${encodeURIComponent(searchKeyword)}`);
+      setSearchKeyword('');
+    }
+  };
+
   return (
     <header 
-      className={`sticky top-0 z-40 w-full transition-all duration-300 ${
-        isScrolled ? 'bg-[var(--color-surface)] shadow-sm py-3' : 'bg-transparent py-5 absolute top-8'
+      className={`sticky top-0 z-40 w-full transition-all duration-300 bg-[#111111] text-white border-b border-black/10 ${
+        isScrolled ? 'shadow-md py-2 md:py-2.5' : 'py-3 md:py-3.5'
       }`}
     >
-      {/* Absolute positioning when not scrolled gives that transparent over-video look if needed, but we'll stick to a solid or semi-transparent bg depending on layout */}
-      <div className={`max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center ${!isScrolled ? 'text-[var(--color-primary)]' : 'text-[var(--color-primary)]'}`}>
+      <div className="w-full px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         
-        {/* Hamburger Menu & Search (Left) */}
-        <div className="flex items-center gap-4 flex-1">
+        {/* Hamburger Menu (Left) */}
+        <div className="flex items-center flex-1">
           <button 
-            className="p-2 -ml-2 hover:opacity-70 transition-opacity flex items-center gap-2"
+            className="p-1.5 -ml-1.5 hover:opacity-70 transition-opacity flex items-center"
             onClick={onOpenMobileMenu}
+            aria-label="Open Navigation Menu"
           >
-            <Menu size={24} strokeWidth={1} />
-          </button>
-          <button className="hidden md:flex p-2 hover:opacity-70 transition-opacity">
-            <Search size={20} strokeWidth={1} />
+            <Menu strokeWidth={1.2} size={24} />
           </button>
         </div>
 
         {/* Logo (Center) */}
         <div className="flex-1 flex justify-center text-center">
           <Link to="/" className="inline-block">
-            <h1 className="font-serif text-3xl md:text-4xl tracking-[0.2em] uppercase">VANYA</h1>
+            <h1 className="font-serif text-[1.35rem] md:text-[1.7rem] tracking-[0.2em] uppercase leading-none font-medium">MF DESIGNS</h1>
           </Link>
         </div>
 
         {/* Icons (Right) */}
-        <div className="flex items-center justify-end gap-3 md:gap-5 flex-1">
-          <button className="hidden md:flex p-2 hover:opacity-70 transition-opacity">
-            <User size={20} strokeWidth={1} />
+        <div className="flex items-center justify-end gap-2 md:gap-4 flex-1">
+          <button 
+            onClick={() => setIsSearchOpen(!isSearchOpen)}
+            className="hidden md:flex p-2 hover:opacity-70 transition-opacity"
+          >
+            {isSearchOpen ? <X strokeWidth={1} size={22} /> : <Search strokeWidth={1} size={22} />}
           </button>
-          
-          <Link to="/wishlist" className="hidden md:flex p-2 hover:opacity-70 transition-opacity relative">
-            <Heart size={20} strokeWidth={1} />
-            {wishlistItems.length > 0 && (
-              <span className="absolute top-1 right-0 bg-black text-white text-[9px] w-3.5 h-3.5 flex items-center justify-center rounded-full font-sans">
-                {wishlistItems.length}
-              </span>
-            )}
+
+          <Link to={userInfo ? "/profile" : "/login"} className="hidden md:flex p-2 hover:opacity-70 transition-opacity">
+            <User strokeWidth={1} size={22} />
           </Link>
           
           <button 
+            className="p-2 -mr-2 hover:opacity-70 transition-opacity relative flex items-center"
             onClick={openCart}
-            className="p-2 hover:opacity-70 transition-opacity relative"
           >
-            <ShoppingBag size={20} strokeWidth={1} />
+            <ShoppingBag strokeWidth={1} size={22} />
             {cartCount > 0 && (
-              <span className="absolute top-1 right-0 bg-black text-white text-[9px] w-3.5 h-3.5 flex items-center justify-center rounded-full font-sans">
+              <span className="absolute top-1 right-0 bg-white text-black text-[9px] font-bold w-[16px] h-[16px] flex items-center justify-center rounded-full font-sans leading-none">
                 {cartCount}
               </span>
             )}
           </button>
         </div>
       </div>
+
+      {/* Search Dropdown */}
+      {isSearchOpen && (
+        <div className="absolute top-full left-0 w-full bg-white shadow-md p-6 border-t border-[#EAEAEA] animate-fade-in text-black">
+          <form onSubmit={handleSearchSubmit} className="max-w-[800px] mx-auto flex items-center gap-4">
+            <input 
+              type="text" 
+              placeholder="Search products..." 
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              autoFocus
+              className="w-full border-b border-[#EAEAEA] p-3 text-sm focus:outline-none focus:border-black font-sans bg-transparent"
+            />
+            <button type="submit" className="mf-btn-primary rounded-none py-2.5 px-6">
+              Search
+            </button>
+          </form>
+        </div>
+      )}
     </header>
   );
 };

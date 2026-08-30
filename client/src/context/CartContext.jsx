@@ -6,14 +6,14 @@ export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState(() => {
-    const savedCart = localStorage.getItem('vanya_cart');
+    const savedCart = localStorage.getItem('mfdesigns_cart');
     return savedCart ? JSON.parse(savedCart) : [];
   });
   
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('vanya_cart', JSON.stringify(cartItems));
+    localStorage.setItem('mfdesigns_cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
   const openCart = () => setIsCartOpen(true);

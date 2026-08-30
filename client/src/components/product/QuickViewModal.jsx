@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
+import useCartStore from '../../store/cartStore';
 
 const QuickViewModal = ({ product, isOpen, onClose }) => {
   const [selectedSize, setSelectedSize] = useState('');
   const [error, setError] = useState('');
-  const { addToCart } = useCart();
+  const addItem = useCartStore(state => state.addItem);
 
   const handleAddToCart = () => {
     if (!selectedSize) {
@@ -14,7 +14,7 @@ const QuickViewModal = ({ product, isOpen, onClose }) => {
       return;
     }
     setError('');
-    addToCart(product, selectedSize, 1);
+    addItem(product, selectedSize);
     onClose();
   };
 
@@ -41,7 +41,7 @@ const QuickViewModal = ({ product, isOpen, onClose }) => {
             >
               <button 
                 onClick={onClose}
-                className="absolute top-4 right-4 text-gray-400 hover:text-[var(--color-primary)] z-10 bg-white md:bg-transparent rounded-full p-1"
+                className="absolute top-4 right-4 text-gray-400 hover:text-[var(--color-text)] z-10 bg-white md:bg-transparent rounded-full p-1"
               >
                 <X size={24} />
               </button>
@@ -54,7 +54,7 @@ const QuickViewModal = ({ product, isOpen, onClose }) => {
               {/* Details Side */}
               <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col overflow-y-auto max-h-[50vh] md:max-h-[90vh]">
                 <p className="text-xs text-gray-500 uppercase tracking-widest font-sans mb-2">{product.category}</p>
-                <h2 className="font-serif text-2xl md:text-3xl text-[var(--color-primary)] mb-4">{product.title}</h2>
+                <h2 className="font-serif text-2xl md:text-3xl text-[var(--color-text)] mb-4">{product.title}</h2>
                 
                 <div className="flex items-center gap-3 font-sans mb-6">
                   {product.discount ? (
@@ -63,7 +63,7 @@ const QuickViewModal = ({ product, isOpen, onClose }) => {
                       <span className="text-[var(--color-sale)] font-medium text-lg">Rs. {product.price.toLocaleString()}</span>
                     </>
                   ) : (
-                    <span className="text-[var(--color-primary)] font-medium text-lg">Rs. {product.price.toLocaleString()}</span>
+                    <span className="text-[var(--color-text)] font-medium text-lg">Rs. {product.price.toLocaleString()}</span>
                   )}
                 </div>
 
@@ -80,7 +80,7 @@ const QuickViewModal = ({ product, isOpen, onClose }) => {
                         className={`w-12 h-12 flex items-center justify-center border font-sans text-sm transition-colors ${
                           selectedSize === size 
                             ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white' 
-                            : 'border-[var(--color-border)] text-[var(--color-primary)] hover:border-[var(--color-primary)]'
+                            : 'border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-primary)]'
                         }`}
                       >
                         {size}

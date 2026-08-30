@@ -6,12 +6,12 @@ export const useWishlist = () => useContext(WishlistContext);
 
 export const WishlistProvider = ({ children }) => {
   const [wishlistItems, setWishlistItems] = useState(() => {
-    const savedWishlist = localStorage.getItem('vanya_wishlist');
+    const savedWishlist = localStorage.getItem('mfdesigns_wishlist');
     return savedWishlist ? JSON.parse(savedWishlist) : [];
   });
 
   useEffect(() => {
-    localStorage.setItem('vanya_wishlist', JSON.stringify(wishlistItems));
+    localStorage.setItem('mfdesigns_wishlist', JSON.stringify(wishlistItems));
   }, [wishlistItems]);
 
   const toggleWishlist = (product) => {

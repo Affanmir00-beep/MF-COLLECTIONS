@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
+import useCartStore from '../../store/cartStore';
 
 const CheckoutModal = ({ isOpen, onClose }) => {
-  const { cartItems, cartTotal, clearCart } = useCart();
+  const cartItems = useCartStore(state => state.items);
+  const getCartTotal = useCartStore(state => state.getCartTotal);
+  const clearCart = useCartStore(state => state.clearCart);
+  const cartTotal = getCartTotal();
   const [step, setStep] = useState(1); // 1: Details, 2: Success
   const [orderId, setOrderId] = useState('');
   const [formData, setFormData] = useState({
@@ -54,7 +57,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
             >
               <button 
                 onClick={handleClose}
-                className="absolute top-4 right-4 text-gray-400 hover:text-[var(--color-primary)] z-10 bg-white md:bg-transparent rounded-full p-1"
+                className="absolute top-4 right-4 text-gray-400 hover:text-[var(--color-text)] z-10 bg-white md:bg-transparent rounded-full p-1"
               >
                 <X size={24} />
               </button>
@@ -63,7 +66,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                 <>
                   {/* Left Form Side */}
                   <div className="flex-1 p-6 md:p-10 border-b md:border-b-0 md:border-r border-[var(--color-border)]">
-                    <h2 className="font-serif text-2xl text-[var(--color-primary)] mb-6">Checkout</h2>
+                    <h2 className="font-serif text-2xl text-[var(--color-text)] mb-6">Checkout</h2>
                     
                     <form onSubmit={handleSubmit} className="space-y-6">
                       <div className="space-y-4">
@@ -145,7 +148,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                             <span className="absolute -top-2 -right-2 bg-gray-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-sans">{item.quantity}</span>
                           </div>
                           <div className="flex-1">
-                            <p className="font-sans text-xs font-medium text-[var(--color-primary)] line-clamp-1">{item.title}</p>
+                            <p className="font-sans text-xs font-medium text-[var(--color-text)] line-clamp-1">{item.title}</p>
                             <p className="text-[10px] text-gray-500 mt-1 font-sans">Size: {item.size}</p>
                           </div>
                           <div className="text-right">
@@ -164,7 +167,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                         <span>Shipping</span>
                         <span>{cartTotal >= 5000 ? 'Free' : 'Rs. 250'}</span>
                       </div>
-                      <div className="flex justify-between font-medium text-[var(--color-primary)] pt-3 border-t border-[var(--color-border)] text-base">
+                      <div className="flex justify-between font-medium text-[var(--color-text)] pt-3 border-t border-[var(--color-border)] text-base">
                         <span>Total</span>
                         <span>Rs. {(cartTotal + (cartTotal >= 5000 ? 0 : 250)).toLocaleString()}</span>
                       </div>
@@ -174,8 +177,8 @@ const CheckoutModal = ({ isOpen, onClose }) => {
               ) : (
                 <div className="w-full p-10 flex flex-col items-center justify-center text-center py-20">
                   <CheckCircle size={64} className="text-[var(--color-accent)] mb-6" strokeWidth={1} />
-                  <h2 className="font-serif text-3xl text-[var(--color-primary)] mb-2">Order Confirmed</h2>
-                  <p className="font-sans text-gray-500 mb-8">Thank you for shopping with Vanya.</p>
+                  <h2 className="font-serif text-3xl text-[var(--color-text)] mb-2">Order Confirmed</h2>
+                  <p className="font-sans text-gray-500 mb-8">Thank you for shopping with MF Designs.</p>
                   
                   <div className="bg-[var(--color-base)] p-6 w-full max-w-sm mb-8 border border-[var(--color-border)]">
                     <p className="font-sans text-xs uppercase tracking-widest text-gray-500 mb-1">Order Number</p>

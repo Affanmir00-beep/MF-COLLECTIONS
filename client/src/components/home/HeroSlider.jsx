@@ -1,38 +1,93 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 
-const HeroSlider = () => {
+/**
+ * HeroSlider — 16:9 Full-Bleed Widescreen Video Banner (Matching Vanya)
+ * - Exact 16:9 ratio (aspect-video) matching Vanya's hero video banner
+ * - Right & left sides take 100% full space (edge-to-edge)
+ * - Top & bottom take 100% full space with zero black bars or letterboxing
+ * - Infinite sequential loop across multiple videos
+ */
+const HeroSlider = ({ data = [] }) => {
+  const [current, setCurrent] = useState(0);
+  const activeVideoRef = useRef(null);
+
+  // Keep slides that have videoUrl (or fallback to image if no video configured)
+  const slides = (data || []).filter(s => s && (s.videoUrl || s.image));
+  const total = slides.length;
+
+  const nextSlide = useCallback(() => {
+    if (total <= 1) {
+      if (activeVideoRef.current) {
+        activeVideoRef.current.currentTime = 0;
+        activeVideoRef.current.play().catch(() => {});
+      }
+      return;
+    }
+    setCurrent(prev => (prev + 1) % total);
+  }, [total]);
+
+  // When active slide changes, ensure the newly active video plays from start
+  useEffect(() => {
+    if (activeVideoRef.current) {
+      activeVideoRef.current.currentTime = 0;
+      const playPromise = activeVideoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    }
+  }, [current]);
+
+  // Fallback for image-only slides (auto-advance after 5s)
+  useEffect(() => {
+    if (!slides[current]?.videoUrl && total > 1) {
+      const timer = setTimeout(() => {
+        nextSlide();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [current, slides, total, nextSlide]);
+
+  if (!slides || slides.length === 0) return null;
+
   return (
-    <div className="relative h-[85vh] md:h-screen w-full overflow-hidden bg-black">
-      <div className="absolute inset-0 z-10 bg-black/20"></div> {/* Subtle overlay */}
-      
-      {/* Background Image / Video Placeholder */}
-      <img 
-        src="/images/banner2.jpg" 
-        alt="Vanya Campaign" 
-        className="w-full h-full object-cover object-center"
-      />
-      
-      {/* Content overlay - styled exactly like Vanya */}
-      <div className="absolute inset-0 z-20 flex flex-col items-center justify-end pb-24 md:pb-32 px-4 text-center">
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          className="flex flex-col items-center gap-6"
-        >
-          <h2 className="text-white font-serif text-5xl md:text-7xl lg:text-[80px] leading-none uppercase">
-            Nouveau<br/>Romance
-          </h2>
-          <Link 
-            to="/collection"
-            className="bg-white text-black px-12 py-3.5 font-sans text-xs tracking-[0.2em] uppercase hover:bg-black hover:text-white transition-colors duration-300"
+    <div className="relative w-full aspect-video overflow-hidden bg-black select-none">
+      {slides.map((slide, idx) => {
+        const isActive = idx === current;
+        const isVideo = Boolean(slide.videoUrl);
+
+        return (
+          <div
+            key={slide._id || idx}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+              isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+            }`}
           >
-            Explore Collection
-          </Link>
-        </motion.div>
-      </div>
+            {isVideo ? (
+              <video
+                ref={isActive ? activeVideoRef : null}
+                src={slide.videoUrl}
+                poster={slide.image}
+                muted
+                playsInline
+                autoPlay={isActive}
+                loop={total === 1}
+                preload={isActive ? 'auto' : 'metadata'}
+                onEnded={nextSlide}
+                onError={() => {
+                  if (total > 1) nextSlide();
+                }}
+                className="w-full h-full object-cover block"
+              />
+            ) : (
+              <img
+                src={slide.image}
+                alt={slide.title || 'Hero Slide'}
+                className="w-full h-full object-cover block"
+              />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };

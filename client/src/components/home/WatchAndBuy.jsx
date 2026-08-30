@@ -1,50 +1,144 @@
-import React from 'react';
-import { Play } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useState, useRef } from 'react';
+import { Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import VideoShoppingModal from './VideoShoppingModal';
 
-const reels = [
-  { id: 1, image: '/images/hero.jpg', title: 'Summer Lawn' },
-  { id: 2, image: '/images/prod1.jpg', title: 'Silk Festive' },
-  { id: 3, image: '/images/prod2.jpg', title: 'Co-Ords' },
-  { id: 4, image: '/images/prod5.jpg', title: 'Velvet' },
-];
+/**
+ * VideoCard — video always plays on loop (auto), no hover-to-play
+ * Click opens modal
+ */
+const VideoCard = ({ item, onClick }) => {
+  const isVideo = item.videoUrl && !item.videoUrl.includes('instagram.com');
 
-const WatchAndBuy = () => {
   return (
-    <section className="py-16 bg-white overflow-hidden">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="font-serif text-3xl md:text-4xl tracking-widest text-black mb-8 text-center uppercase">Watch & Buy</h2>
-        
-        {/* Horizontal Scroll Container */}
-        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-8 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          {reels.map(reel => (
-            <Link 
-              key={reel.id} 
-              to="/collection"
-              className="relative w-64 md:w-72 aspect-[9/16] flex-shrink-0 snap-center group cursor-pointer"
-            >
-              <img 
-                src={reel.image} 
-                alt={reel.title} 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
-              
-              {/* Play Button Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center bg-black/20 backdrop-blur-sm group-hover:scale-110 transition-transform">
-                  <Play size={20} fill="white" className="text-white ml-1" />
-                </div>
-              </div>
-              
-              <div className="absolute bottom-6 left-6 text-white z-10">
-                <h3 className="font-sans text-sm tracking-widest uppercase font-medium">{reel.title}</h3>
-              </div>
-            </Link>
-          ))}
-        </div>
+    <div
+      className="shrink-0 relative cursor-pointer overflow-hidden bg-black select-none"
+      style={{ width: 'var(--wab-card-w)', aspectRatio: '9/16' }}
+      onClick={onClick}
+    >
+      {isVideo ? (
+        <video
+          src={item.videoUrl}
+          poster={item.coverImage}
+          autoPlay
+          muted
+          playsInline
+          loop
+          preload="metadata"
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <img
+          src={item.coverImage}
+          alt="thumbnail"
+          className="w-full h-full object-cover"
+        />
+      )}
+
+      {/* gradient */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 pointer-events-none" />
+
+      {/* views */}
+      <div className="absolute top-2.5 left-2.5 flex items-center gap-1 text-white text-[10px] bg-black/50 px-1.5 py-0.5 rounded backdrop-blur-sm z-10 pointer-events-none">
+        <Eye strokeWidth={1.5} size={12} />
+        <span className="font-sans font-medium">{item.views || '1.2K'}</span>
       </div>
-    </section>
+
+      {/* sku thumbnail */}
+      <div className="absolute bottom-3 left-2.5 flex items-center gap-1.5 z-10 pointer-events-none">
+        <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30 bg-white/10">
+          <img src={item.coverImage} alt="sku" className="w-full h-full object-cover" />
+        </div>
+        <span className="text-white text-[10px] font-sans font-medium drop-shadow-md">
+          {item.productSku}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * WatchAndBuy
+ * - Videos auto-play on loop (always)
+ * - Prev / Next buttons scroll through cards
+ * - No auto-scroll animation — user scrolls with buttons
+ */
+const WatchAndBuy = ({ data = [] }) => {
+  const [activeVideo, setActiveVideo] = useState(null);
+  const trackRef = useRef(null);
+
+  // card width px — kept in sync with CSS variable below
+  const CARD_W = typeof window !== 'undefined' && window.innerWidth < 768 ? 160 : 210;
+  const GAP = 8;
+
+  const scroll = (dir) => {
+    if (!trackRef.current) return;
+    const amount = (CARD_W + GAP) * 3; // jump 3 cards
+    trackRef.current.scrollBy({ left: dir === 'right' ? amount : -amount, behavior: 'smooth' });
+  };
+
+  const handleOpenVideo = (item) => {
+    setActiveVideo(item);
+    if (item._id) {
+      apiClient.post(`/content/watch-buy/${item._id}/view`).catch(() => {});
+    }
+  };
+
+  if (!data || data.length === 0) return null;
+
+  return (
+    <>
+      <section id="watch-buy" className="bg-white py-6 md:py-8"
+        style={{ '--wab-card-w': `${CARD_W}px` }}
+      >
+        {/* heading */}
+        <div className="text-center mb-5">
+          <h2 className="font-sans text-[11px] tracking-[0.3em] uppercase font-medium">Watch &amp; Buy</h2>
+        </div>
+
+        {/* track + arrows */}
+        <div className="relative group">
+          {/* scroll track */}
+          <div
+            ref={trackRef}
+            className="flex gap-2 overflow-x-auto no-scrollbar px-4 scroll-smooth"
+          >
+            {data.map((item, idx) => (
+              <VideoCard
+                key={item._id || idx}
+                item={item}
+                onClick={() => handleOpenVideo(item)}
+              />
+            ))}
+          </div>
+
+          {/* left arrow */}
+          <button
+            onClick={() => scroll('left')}
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-20 w-9 h-9 flex items-center justify-center bg-white/90 rounded-full shadow border border-gray-200 text-black hover:bg-black hover:text-white transition-all opacity-0 group-hover:opacity-100"
+            aria-label="Previous"
+          >
+            <ChevronLeft strokeWidth={1.5} size={18} />
+          </button>
+
+          {/* right arrow */}
+          <button
+            onClick={() => scroll('right')}
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-20 w-9 h-9 flex items-center justify-center bg-white/90 rounded-full shadow border border-gray-200 text-black hover:bg-black hover:text-white transition-all opacity-0 group-hover:opacity-100"
+            aria-label="Next"
+          >
+            <ChevronRight strokeWidth={1.5} size={18} />
+          </button>
+        </div>
+      </section>
+
+      {activeVideo && (
+        <VideoShoppingModal
+          video={activeVideo}
+          isOpen={!!activeVideo}
+          onClose={() => setActiveVideo(null)}
+        />
+      )}
+    </>
   );
 };
 

@@ -17,7 +17,7 @@ const CategoryBanners = () => {
   return (
     <section className="py-2 mb-10 w-full px-2 sm:px-4">
       {/* 3x3 Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-[var(--gap-card)]">
         {categories.map((cat, idx) => (
           <Link 
             key={idx} 

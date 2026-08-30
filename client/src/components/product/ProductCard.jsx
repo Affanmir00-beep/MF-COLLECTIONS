@@ -1,61 +1,77 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { useWishlist } from '../../context/WishlistContext';
 
-const ProductCard = ({ product }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  // Optional wishlist functionality can be added back if needed, but keeping it minimal for now
+const ProductCard = ({ product, fillHeight = false }) => {
+  const images = product.images?.length > 0 
+    ? product.images 
+    : ['/images/prod1.jpg'];
+    
+  const hasHoverImage = images.length > 1;
+
+  const firstCollection = product.collectionHandles?.[0] || 'all';
+  const productUrl = `/collections/${firstCollection}/products/${product.sku || product.id}`;
+
+  const isSoldOut = product.badge === "Sold out";
+
+  const availSizes = product.availableSizes?.length 
+    ? product.availableSizes 
+    : (product.variants?.filter(v => v.stock > 0).map(v => v.size) || product.sizes || ['XS', 'S', 'M', 'L']);
+  
+  const isFreeSize = availSizes.some(s => typeof s === 'string' && s.toLowerCase().includes('free'));
+  const sizeLabel = isFreeSize ? 'FREE SIZE' : availSizes.join('  ');
 
   return (
-    <div 
-      className="group flex flex-col w-full relative"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* Badges */}
-      <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
-        {product.discount && (
-          <span className="bg-black text-white text-[10px] uppercase tracking-widest px-2 py-1 font-sans">
-            Sale
-          </span>
-        )}
-      </div>
-
-      {/* Image Container */}
-      <Link to={`/product/${product.id}`} className="relative aspect-[3/4] bg-gray-100 overflow-hidden block">
+    <div className={`group/card flex flex-col w-full relative ${isSoldOut ? 'opacity-70' : ''} ${fillHeight ? 'h-full' : ''}`}>
+      {/* Image container — aspect-[3/4] by default, fills parent height when fillHeight=true */}
+      <Link
+        to={productUrl}
+        className={`block relative overflow-hidden ${fillHeight ? 'flex-1 min-h-0' : 'aspect-[3/4]'}`}
+      >
         <img 
-          src={product.images[0]} 
+          src={typeof images[0] === 'object' ? images[0].url : images[0]} 
           alt={product.title} 
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${isHovered && product.images[1] ? 'opacity-0' : 'opacity-100'}`}
+          loading="lazy"
+          className={`w-full h-full object-cover transition-opacity duration-500 absolute inset-0 ${hasHoverImage ? 'group-hover/card:opacity-0' : ''}`}
         />
-        {product.images[1] && (
+        {hasHoverImage && (
           <img 
-            src={product.images[1]} 
-            alt={`${product.title} alternative`} 
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+            src={typeof images[1] === 'object' ? images[1].url : images[1]} 
+            alt={`${product.title} alternate`} 
+            loading="lazy"
+            className="w-full h-full object-cover transition-opacity duration-500 absolute inset-0 opacity-0 group-hover/card:opacity-100"
           />
         )}
+        
+        {/* Badge */}
+        {product.badge && (
+          <div className="absolute top-3 left-3 z-10">
+            <span className="bg-[#111111] text-white mf-micro px-3 py-1.5 rounded-sm">
+              {product.badge}
+            </span>
+          </div>
+        )}
+
+        {/* Sizes overlay — ONLY visible on hover, bottom of image */}
+        <div className="absolute bottom-0 inset-x-0 flex justify-center items-end pb-3 z-10 pointer-events-none opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
+          <span className="font-sans text-[10px] tracking-[0.2em] text-white uppercase font-medium bg-black/40 backdrop-blur-sm px-3 py-1 rounded-sm">
+            {availSizes.join(', ')}
+          </span>
+        </div>
       </Link>
 
-      {/* Product Info - Exact styling as Vanya */}
-      <div className="pt-4 flex flex-col items-center text-center">
-        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-sans mb-1">VANYA</p>
-        <Link to={`/product/${product.id}`}>
-          <h3 className="font-serif text-base text-black mb-2 hover:opacity-70 transition-opacity uppercase">
-            {product.title}
-          </h3>
+      {/* Product Info */}
+      <div className="flex flex-col shrink-0 pt-2 pb-3 space-y-0.5 bg-white">
+        <Link to={productUrl} className="font-sans text-[10px] tracking-widest text-gray-500 hover:text-black transition-colors uppercase">
+          {product.sku}
         </Link>
-        
-        <div className="mt-1 flex items-center justify-center gap-2 font-sans">
-          {product.discount ? (
-            <>
-              <span className="text-gray-400 line-through text-xs">Rs. {product.originalPrice?.toLocaleString()}</span>
-              <span className="text-red-700 font-normal text-sm">Rs. {product.price.toLocaleString()}</span>
-            </>
-          ) : (
-            <span className="text-black font-normal text-sm">Rs. {product.price.toLocaleString()}</span>
-          )}
-        </div>
+        <span className="font-sans text-[9px] tracking-widest text-gray-400 uppercase">
+          {sizeLabel}
+        </span>
+        <span className="font-sans text-[12px] text-black font-medium">
+          {product.currency === 'PKR' ? 'Rs.' : ''}
+          {product.price?.toLocaleString() || product.price}
+          {product.currency === 'PKR' ? '.00' : ''}
+        </span>
       </div>
     </div>
   );

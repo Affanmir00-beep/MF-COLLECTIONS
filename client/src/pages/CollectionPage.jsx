@@ -1,120 +1,184 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { mockProducts } from '../data/mockProducts';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
+import { SlidersHorizontal, ChevronDown } from 'lucide-react';
 import ProductCard from '../components/product/ProductCard';
-import QuickViewModal from '../components/product/QuickViewModal';
 import FilterDrawer from '../components/layout/FilterDrawer';
-import { SlidersHorizontal, Grid2X2, LayoutGrid, ChevronDown } from 'lucide-react';
+import { mockApi } from '../data/mockApi';
+import { useCursorPagination } from '../hooks/useCursorPagination';
+
+const gridOptions = [1, 2, 3, 4, 5, 6];
 
 const CollectionPage = () => {
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const categoryParam = searchParams.get('category');
-  const filterParam = searchParams.get('filter');
+  const { handle } = useParams();
+  const categoryParam = handle || 'all';
 
-  const [products, setProducts] = useState(mockProducts);
-  const [quickViewProduct, setQuickViewProduct] = useState(null);
-  const [activeCategory, setActiveCategory] = useState(categoryParam || 'All Collections');
+  const [gridCols, setGridCols] = useState(4); // default 4 on desktop
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [gridCols, setGridCols] = useState(4); // Default to 4 columns like Vanya
+  const [sortOption, setSortOption] = useState('Featured');
+  
+  const sentinelRef = useRef(null);
+
+  // Use the reusable cursor pagination hook
+  const {
+    items: products,
+    hasMore,
+    isLoading,
+    loadMore,
+    resetAndLoad
+  } = useCursorPagination(
+    (options) => mockApi.getCollectionProducts(categoryParam, options),
+    10
+  );
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    let filtered = [...mockProducts];
+    resetAndLoad({ sort: sortOption });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryParam, sortOption]);
+
+  // IntersectionObserver for infinite scroll
+  useEffect(() => {
+    if (!sentinelRef.current || !hasMore) return;
     
-    if (categoryParam) {
-      filtered = filtered.filter(p => p.category === categoryParam);
-      setActiveCategory(categoryParam);
-    } else if (filterParam === 'new') {
-      filtered = filtered.filter(p => p.isNew);
-      setActiveCategory('New Arrivals');
-    } else if (filterParam === 'sale') {
-      filtered = filtered.filter(p => p.discount);
-      setActiveCategory('Sale');
-    } else {
-      setActiveCategory('All Collections');
-    }
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        loadMore();
+      }
+    }, { rootMargin: "300px" });
     
-    setProducts(filtered);
-  }, [categoryParam, filterParam]);
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [sentinelRef.current, hasMore, loadMore]);
+
+  // Map gridCols state to Tailwind classes
+  const gridClassMap = {
+    1: 'grid-cols-1 gap-[var(--gap-card)]',
+    2: 'grid-cols-2 gap-[var(--gap-card)]',
+    3: 'grid-cols-2 md:grid-cols-3 gap-[var(--gap-card)]',
+    4: 'grid-cols-2 md:grid-cols-4 gap-[var(--gap-card)]',
+    5: 'grid-cols-2 md:grid-cols-5 gap-[var(--gap-card)]',
+    6: 'grid-cols-2 md:grid-cols-6 gap-[var(--gap-card)]'
+  };
 
   return (
-    <div className="bg-white min-h-screen pb-16">
+    <div className="bg-white min-h-screen pb-[120px] w-full text-black">
       
-      {/* Category Header */}
-      <div className="text-center py-12 md:py-16">
-        <h1 className="font-serif text-3xl md:text-5xl text-black tracking-widest uppercase mb-4">
-          {activeCategory}
+      {/* Header & Title */}
+      <div className="text-center mb-10 px-4 mf-section-sm pb-0">
+        <h1 className="mf-display">
+          {categoryParam === 'all' ? 'All Collections' : categoryParam.replace(/-/g, ' ')}
         </h1>
-        <p className="font-sans text-gray-400 text-sm tracking-wider uppercase">
-          {products.length} Products
-        </p>
       </div>
 
-      {/* Top Utility Bar (Vanya Layout) */}
-      <div className="sticky top-[73px] z-20 bg-white border-y border-[var(--color-border)] py-3 px-4 sm:px-6 lg:px-8 flex justify-between items-center mb-8">
+      {/* Toolbar */}
+      <div className="sticky top-[88px] md:top-[92px] z-30 bg-white border-y border-[#EAEAEA] py-3 px-4 sm:px-6 lg:px-8 flex justify-between items-center text-sm font-sans mb-8">
         
-        {/* Left: Filter Toggle */}
-        <button 
-          onClick={() => setIsFilterOpen(true)}
-          className="flex items-center gap-2 font-sans text-xs uppercase tracking-widest text-black hover:opacity-70 transition-opacity"
-        >
-          <SlidersHorizontal size={16} strokeWidth={1.5} /> 
-          <span className="hidden sm:inline">Filter</span>
-        </button>
-
-        {/* Center: Grid Controls (Desktop only) */}
-        <div className="hidden md:flex items-center gap-4 text-gray-400">
+        {/* Left: Filter */}
+        <div className="flex-1 flex justify-start">
           <button 
-            onClick={() => setGridCols(2)} 
-            className={`transition-colors ${gridCols === 2 ? 'text-black' : 'hover:text-black'}`}
+            onClick={() => setIsFilterOpen(true)}
+            className="flex items-center gap-2 hover:opacity-70 transition-opacity mf-label"
           >
-            <Grid2X2 size={20} strokeWidth={1} />
-          </button>
-          <button 
-            onClick={() => setGridCols(4)} 
-            className={`transition-colors ${gridCols === 4 ? 'text-black' : 'hover:text-black'}`}
-          >
-            <LayoutGrid size={20} strokeWidth={1} />
+            <SlidersHorizontal strokeWidth={1} size={18} />
+            Filter
           </button>
         </div>
 
-        {/* Right: Sort By */}
-        <div className="flex items-center gap-2 font-sans text-xs uppercase tracking-widest text-black cursor-pointer group">
-          <span className="hidden sm:inline">Sort by</span>
-          <span className="sm:hidden">Sort</span>
-          <ChevronDown size={14} strokeWidth={1.5} className="group-hover:rotate-180 transition-transform duration-300" />
+        {/* Center: Vanya-style grid density switcher — vertical bar icons */}
+        <div className="flex-1 hidden md:flex items-center justify-center gap-1">
+          {[
+            { cols: 2, bars: 2 },
+            { cols: 3, bars: 3 },
+            { cols: 4, bars: 4 },
+            { cols: 5, bars: 5 },
+            { cols: 6, bars: 6 },
+          ].map(({ cols, bars }) => (
+            <button
+              key={cols}
+              onClick={() => setGridCols(cols)}
+              title={`${cols} columns`}
+              className={`flex items-end justify-center gap-[2px] px-2 py-1.5 transition-all ${
+                gridCols === cols
+                  ? 'opacity-100'
+                  : 'opacity-30 hover:opacity-70'
+              }`}
+              aria-label={`${cols} columns per row`}
+            >
+              {Array.from({ length: bars }).map((_, i) => (
+                <span
+                  key={i}
+                  className={`block bg-black rounded-[1px] ${
+                    bars <= 2 ? 'w-[5px] h-[16px]' :
+                    bars === 3 ? 'w-[4px] h-[16px]' :
+                    bars === 4 ? 'w-[3px] h-[14px]' :
+                    bars === 5 ? 'w-[2.5px] h-[13px]' :
+                    'w-[2px] h-[12px]'
+                  }`}
+                />
+              ))}
+            </button>
+          ))}
         </div>
+
+        {/* Right: Sort Dropdown */}
+        <div className="flex-1 flex justify-end">
+          <div className="relative group cursor-pointer flex items-center gap-2 uppercase tracking-widest text-[11px] font-medium">
+            <span>{sortOption}</span>
+            <ChevronDown strokeWidth={1} size={16} />
+            
+            <div className="absolute top-full right-0 mt-2 w-48 bg-white shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-40 text-left">
+              {['Featured', 'Best selling', 'Date, new to old', 'Price, low to high', 'Price, high to low'].map(opt => (
+                <button 
+                  key={opt}
+                  onClick={() => setSortOption(opt)}
+                  className={`block w-full text-left px-4 py-3 hover:bg-gray-50 ${sortOption === opt ? 'font-bold' : ''}`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Product Grid */}
+      {/* Grid — full width, no side padding */}
+      <div className="w-full">
         {products.length > 0 ? (
-          <div className={`grid grid-cols-2 gap-x-2 gap-y-8 md:gap-x-4 md:gap-y-12 ${gridCols === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-2 max-w-4xl mx-auto'}`}>
-            {products.map(product => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                onQuickView={setQuickViewProduct} 
-              />
-            ))}
+          <>
+            <div className={`grid ${gridClassMap[gridCols]}`}>
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            {/* Pagination trigger / button */}
+            <div className="mt-16 flex flex-col items-center justify-center">
+              {hasMore && (
+                <button 
+                  onClick={() => loadMore()}
+                  disabled={isLoading}
+                  className="mf-btn-primary disabled:opacity-50"
+                >
+                  {isLoading ? 'Loading...' : 'Load More'}
+                </button>
+              )}
+              {/* Invisible sentinel element to trigger IntersectionObserver */}
+              <div ref={sentinelRef} className="h-10 w-full mt-4"></div>
+            </div>
+          </>
+        ) : isLoading ? (
+          <div className="h-[50vh] flex items-center justify-center uppercase tracking-widest text-xs font-sans">
+            Loading...
           </div>
         ) : (
-          <div className="text-center py-32">
-            <p className="font-sans text-gray-500">No products found in this category.</p>
+          <div className="text-center py-32 font-sans tracking-widest uppercase text-sm">
+            No products found.
           </div>
         )}
       </div>
 
-      {/* Filter Drawer */}
       <FilterDrawer isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)} />
-
-      {/* Quick View */}
-      <QuickViewModal 
-        product={quickViewProduct} 
-        isOpen={!!quickViewProduct} 
-        onClose={() => setQuickViewProduct(null)} 
-      />
     </div>
   );
 };

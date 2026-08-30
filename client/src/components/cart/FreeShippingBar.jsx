@@ -10,7 +10,7 @@ const FreeShippingBar = ({ total }) => {
   return (
     <div className="w-full">
       <div className="flex justify-between items-end mb-2">
-        <p className="text-xs font-sans text-[var(--color-primary)]">
+        <p className="text-xs font-sans text-[var(--color-text)]">
           {isFreeShipping ? (
             <span className="font-medium text-[var(--color-accent)]">🎉 You've unlocked Free Shipping!</span>
           ) : (
