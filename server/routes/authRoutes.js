@@ -15,6 +15,7 @@ const {
   refreshAuth,
   logoutUser,
   loginAdmin,
+  seedAdminController,
 } = require('../controllers/authController');
 
 router.post('/login', authLimiter, validate(loginSchema), loginUser);
@@ -23,7 +24,10 @@ router.post('/verify-otp', authLimiter, validate(verifyOtpSchema), verifyOtp);
 router.post('/refresh', refreshAuth);
 router.post('/logout', logoutUser);
 
-// Admin login has a separate route, you can apply stricter limiters if you want
+// Admin login has a separate route
 router.post('/admin/login', authLimiter, validate(loginSchema), loginAdmin);
+
+// Seed or ensure admin account is ready
+router.get('/seed-admin', seedAdminController);
 
 module.exports = router;

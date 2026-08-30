@@ -161,11 +161,39 @@ const loginAdmin = async (req, res) => {
   }
 };
 
+const seedAdminController = async (req, res) => {
+  try {
+    let admin = await User.findOne({ email: 'admin@mfdesigns.com' });
+    if (!admin) {
+      admin = await User.create({
+        name: 'MF Designs Admin',
+        email: 'admin@mfdesigns.com',
+        password: 'password123',
+        role: 'admin'
+      });
+    } else {
+      admin.password = 'password123';
+      admin.role = 'admin';
+      await admin.save();
+    }
+    res.json({
+      success: true,
+      message: 'Admin account is ready to login!',
+      email: 'admin@mfdesigns.com',
+      password: 'password123',
+      role: 'admin'
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 module.exports = {
   loginUser,
   registerUser,
   verifyOtp,
   refreshAuth,
   logoutUser,
-  loginAdmin
+  loginAdmin,
+  seedAdminController
 };
