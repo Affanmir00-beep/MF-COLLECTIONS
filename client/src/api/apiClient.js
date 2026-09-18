@@ -3,7 +3,9 @@ import axios from 'axios';
 // In production, set VITE_API_URL on Vercel (e.g. https://your-backend.onrender.com/api/v1)
 // In development, defaults to http://localhost:5000/api/v1
 export const API_BASE_URL = import.meta.env.VITE_API_URL 
-  ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
+  ? (import.meta.env.VITE_API_URL.endsWith('/api/v1') 
+      ? import.meta.env.VITE_API_URL 
+      : import.meta.env.VITE_API_URL.replace(/\/+$/, '') + '/api/v1')
   : 'http://localhost:5000/api/v1';
 
 // Direct host URL without /api/v1 (e.g. http://localhost:5000 or https://your-backend.onrender.com)
