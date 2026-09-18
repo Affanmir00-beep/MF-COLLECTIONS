@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
+const compression = require('compression');
 const connectDB = require('./config/db');
 const { notFound, errorHandler } = require('./middlewares/errorMiddleware');
 
@@ -17,6 +18,10 @@ const categoryRoutes = require('./routes/categoryRoutes');
 connectDB();
 
 const app = express();
+
+// Performance: Response compression (Gzip / Brotli)
+app.use(compression());
+app.set('etag', 'strong');
 
 // Security Middlewares
 app.use(helmet({

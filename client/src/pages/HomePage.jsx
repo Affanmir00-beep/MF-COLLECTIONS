@@ -9,6 +9,7 @@ import FormalsSplit from '../components/home/FormalsSplit';
 import CoOrdsPromo from '../components/home/CoOrdsPromo';
 import StoreLocator from '../components/home/StoreLocator';
 import SpottedGallery from '../components/home/SpottedGallery';
+import HomeHeroSkeleton from '../components/common/HomeHeroSkeleton';
 
 const HomePage = () => {
   const [config, setConfig] = useState(null);
@@ -30,7 +31,7 @@ const HomePage = () => {
   }, []);
 
   if (loading) {
-    return <div className="w-full h-screen flex items-center justify-center font-sans tracking-widest text-sm uppercase">Loading...</div>;
+    return <HomeHeroSkeleton />;
   }
 
   return (

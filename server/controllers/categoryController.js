@@ -1,11 +1,12 @@
 const Category = require('../models/Category');
 const Product = require('../models/Product');
+const { invalidateCache } = require('../middlewares/cacheMiddleware');
 
 // @desc    Get all categories
 // @route   GET /api/v1/categories
 // @access  Public
 const getCategories = async (req, res) => {
-  const categories = await Category.find({});
+  const categories = await Category.find({}).lean();
   res.json(categories);
 };
 
@@ -35,6 +36,8 @@ const createCategory = async (req, res) => {
     coverImage
   });
 
+  invalidateCache('categories');
+  invalidateCache('content');
   res.status(201).json(category);
 };
 
@@ -69,6 +72,8 @@ const deleteCategory = async (req, res) => {
   }
 
   await Category.deleteOne({ _id: category._id });
+  invalidateCache('categories');
+  invalidateCache('content');
   res.json({ message: 'Category removed successfully' });
 };
 

@@ -15,6 +15,8 @@ const getHomePageConfig = asyncHandler(async (req, res) => {
   res.json(config);
 });
 
+const { invalidateCache } = require('../middlewares/cacheMiddleware');
+
 // @desc    Update homepage configuration
 // @route   PUT /api/v1/admin/content/homepage
 // @access  Private/Admin
@@ -48,6 +50,7 @@ const updateHomePageConfig = asyncHandler(async (req, res) => {
   if (spottedGallery) config.spottedGallery = spottedGallery;
 
   const updatedConfig = await config.save();
+  invalidateCache('content');
   res.json(updatedConfig);
 });
 

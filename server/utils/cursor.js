@@ -5,7 +5,7 @@ const decodeCursor = (cursor) => {
   return { createdAt: new Date(createdAt), id };
 };
 
-async function paginateByCursor(Model, filter, { cursor, limit = 10, sortDir = -1, populate = [] }) {
+async function paginateByCursor(Model, filter, { cursor, limit = 10, sortDir = -1, populate = [], select = '' }) {
   const query = { ...filter, status: 'published' };
   
   if (cursor) {
@@ -16,7 +16,10 @@ async function paginateByCursor(Model, filter, { cursor, limit = 10, sortDir = -
     ];
   }
   
-  let mQuery = Model.find(query).sort({ createdAt: sortDir, _id: sortDir }).limit(limit + 1);
+  let mQuery = Model.find(query).sort({ createdAt: sortDir, _id: sortDir }).limit(limit + 1).lean();
+  if (select) {
+    mQuery = mQuery.select(select);
+  }
   if (populate.length) {
     populate.forEach(p => mQuery = mQuery.populate(p));
   }
@@ -27,7 +30,7 @@ async function paginateByCursor(Model, filter, { cursor, limit = 10, sortDir = -
   
   return { 
     items: page, 
-    nextCursor: hasMore ? encodeCursor(page[page.length - 1]) : null 
+    nextCursor: hasMore && page.length > 0 ? encodeCursor(page[page.length - 1]) : null 
   };
 }
 

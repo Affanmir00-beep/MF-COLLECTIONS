@@ -1,14 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { optimizeImageUrl } from '../../utils/imageOptimizer';
 
 const CoOrdsPromo = ({ data }) => {
   return (
     <section className="pt-8 md:pt-10 pb-0 bg-white">
       <div className="w-full">
-        <Link to={data?.link || "/collections/co-ords"} className="relative block w-full h-[60vh] md:h-[70vh] group overflow-hidden">
+        <Link to={data?.link || "/collections/co-ords"} className="relative block w-full h-[60vh] md:h-[70vh] group overflow-hidden bg-gray-100">
           <img 
-            src={data?.image || "/images/prod1.jpg"} 
+            src={optimizeImageUrl(data?.image || "/images/prod1.jpg", { width: 1400, quality: 'auto:good' })} 
             alt={data?.title || "Co-Ords"} 
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { optimizeImageUrl } from '../../utils/imageOptimizer';
 
 const CollectionsGrid = ({ data = [] }) => {
   if (!data || data.length === 0) return null;
@@ -11,11 +12,13 @@ const CollectionsGrid = ({ data = [] }) => {
           <Link
             key={idx}
             to={col.link}
-            className="relative group overflow-hidden block aspect-[4/5]"
+            className="relative group overflow-hidden block aspect-[4/5] bg-gray-100"
           >
             <img
-              src={col.image}
+              src={optimizeImageUrl(col.image, { width: 800, quality: 'auto:good' })}
               alt={col.title}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             {/* Dark overlay for text legibility */}

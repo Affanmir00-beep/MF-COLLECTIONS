@@ -6,9 +6,10 @@ const {
   deleteCategory
 } = require('../controllers/categoryController');
 const { protect, adminOnly } = require('../middlewares/authMiddleware');
+const { cacheResponse } = require('../middlewares/cacheMiddleware');
 
 router.route('/')
-  .get(getCategories)
+  .get(cacheResponse(900, 'categories'), getCategories)
   .post(protect, adminOnly, createCategory);
 
 router.route('/:id')

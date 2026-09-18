@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { optimizeImageUrl } from '../../utils/imageOptimizer';
 
 const ProductCard = ({ product, fillHeight = false }) => {
   const images = product.images?.length > 0 
@@ -9,7 +10,7 @@ const ProductCard = ({ product, fillHeight = false }) => {
   const hasHoverImage = images.length > 1;
 
   const firstCollection = product.collectionHandles?.[0] || 'all';
-  const productUrl = `/collections/${firstCollection}/products/${product.sku || product.id}`;
+  const productUrl = `/collections/${firstCollection}/products/${product.sku || product.id || product._id}`;
 
   const isSoldOut = product.badge === "Sold out";
 
@@ -20,24 +21,32 @@ const ProductCard = ({ product, fillHeight = false }) => {
   const isFreeSize = availSizes.some(s => typeof s === 'string' && s.toLowerCase().includes('free'));
   const sizeLabel = isFreeSize ? 'FREE SIZE' : availSizes.join('  ');
 
+  const rawImg1 = typeof images[0] === 'object' ? images[0].url : images[0];
+  const rawImg2 = hasHoverImage ? (typeof images[1] === 'object' ? images[1].url : images[1]) : null;
+
+  const optimizedImg1 = optimizeImageUrl(rawImg1, { width: 600, quality: 'auto:good' });
+  const optimizedImg2 = rawImg2 ? optimizeImageUrl(rawImg2, { width: 600, quality: 'auto:good' }) : null;
+
   return (
     <div className={`group/card flex flex-col w-full relative ${isSoldOut ? 'opacity-70' : ''} ${fillHeight ? 'h-full' : ''}`}>
       {/* Image container — aspect-[3/4] by default, fills parent height when fillHeight=true */}
       <Link
         to={productUrl}
-        className={`block relative overflow-hidden ${fillHeight ? 'flex-1 min-h-0' : 'aspect-[3/4]'}`}
+        className={`block relative overflow-hidden bg-gray-50 ${fillHeight ? 'flex-1 min-h-0' : 'aspect-[3/4]'}`}
       >
         <img 
-          src={typeof images[0] === 'object' ? images[0].url : images[0]} 
-          alt={product.title} 
+          src={optimizedImg1} 
+          alt={product.title || product.sku} 
           loading="lazy"
+          decoding="async"
           className={`w-full h-full object-cover transition-opacity duration-500 absolute inset-0 ${hasHoverImage ? 'group-hover/card:opacity-0' : ''}`}
         />
-        {hasHoverImage && (
+        {hasHoverImage && optimizedImg2 && (
           <img 
-            src={typeof images[1] === 'object' ? images[1].url : images[1]} 
-            alt={`${product.title} alternate`} 
+            src={optimizedImg2} 
+            alt={`${product.title || product.sku} alternate`} 
             loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover transition-opacity duration-500 absolute inset-0 opacity-0 group-hover/card:opacity-100"
           />
         )}

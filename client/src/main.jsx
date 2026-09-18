@@ -14,8 +14,11 @@ axios.defaults.withCredentials = true;
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes cache
+      staleTime: 1000 * 60 * 5, // 5 minutes fresh cache
+      gcTime: 1000 * 60 * 15,    // 15 minutes in-memory garbage collection cache retention
       refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+      retry: 1,
     },
   },
 })

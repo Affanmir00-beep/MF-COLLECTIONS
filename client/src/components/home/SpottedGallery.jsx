@@ -1,5 +1,6 @@
 import React from 'react';
 import { Heart } from 'lucide-react';
+import { optimizeImageUrl } from '../../utils/imageOptimizer';
 
 const SpottedGallery = ({ data = [] }) => {
   if (!data || data.length === 0) return null;
@@ -22,11 +23,13 @@ const SpottedGallery = ({ data = [] }) => {
             href={item.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="relative aspect-[3/4] overflow-hidden group block"
+            className="relative aspect-[3/4] overflow-hidden group block bg-gray-100"
           >
             <img
-              src={item.image}
+              src={optimizeImageUrl(item.image, { width: 500, quality: 'auto:good' })}
               alt="Gallery"
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">

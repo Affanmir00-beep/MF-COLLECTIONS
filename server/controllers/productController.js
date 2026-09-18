@@ -1,5 +1,6 @@
 const Product = require('../models/Product');
 const { paginateByCursor } = require('../utils/cursor');
+const { invalidateCache } = require('../middlewares/cacheMiddleware');
 
 // @desc    Fetch all products (with cursor pagination)
 // @route   GET /api/v1/products
@@ -22,7 +23,6 @@ const getProducts = async (req, res) => {
     if (mongoose.Types.ObjectId.isValid(req.query.category)) {
       categoryFilter = { category: req.query.category };
     } else {
-      // If invalid object ID, ensure no products match instead of crashing
       categoryFilter = { category: new mongoose.Types.ObjectId() };
     }
   }
@@ -37,7 +37,13 @@ const getProducts = async (req, res) => {
   const filter = { ...keyword, ...categoryFilter, ...isNewArrival, ...isBestSeller, ...isSale, ...isVideoCommerce, ...exclude };
 
   try {
-    const { items, nextCursor } = await paginateByCursor(Product, filter, { cursor, limit, sortDir: -1, populate: [{ path: 'category', select: 'slug' }] });
+    const { items, nextCursor } = await paginateByCursor(Product, filter, { 
+      cursor, 
+      limit, 
+      sortDir: -1, 
+      populate: [{ path: 'category', select: 'name slug' }],
+      select: 'title sku price compareAtPrice images badge category collectionHandles availableSizes sizes variants isNewArrival isBestSeller isVideoCommerce videoUrl slug createdAt'
+    });
     res.json({ products: items, nextCursor });
   } catch (error) {
     res.status(400);
@@ -53,7 +59,7 @@ const getProductById = async (req, res) => {
   let product;
   
   if (mongoose.Types.ObjectId.isValid(req.params.id)) {
-    product = await Product.findById(req.params.id).populate('category', 'slug');
+    product = await Product.findById(req.params.id).populate('category', 'name slug').lean();
   } else {
     product = await Product.findOne({ 
       $or: [
@@ -61,7 +67,7 @@ const getProductById = async (req, res) => {
         { sku: req.params.id.toUpperCase() },
         { sku: req.params.id }
       ] 
-    }).populate('category', 'slug');
+    }).populate('category', 'name slug').lean();
   }
 
   if (product) {
@@ -76,7 +82,7 @@ const getProductById = async (req, res) => {
 // @route   POST /api/v1/products
 // @access  Private/Admin
 const createProduct = async (req, res) => {
-  const images = req.body.images || [];
+  const images = req.body.images;
   if (!Array.isArray(images) || images.length < 3 || images.length > 8) {
     res.status(400);
     throw new Error('A product must have between 3 and 8 images.');
@@ -84,7 +90,7 @@ const createProduct = async (req, res) => {
 
   let sku = req.body.sku;
   if (!sku) {
-    let nextNumber = 49; // Default starting point
+    let nextNumber = 49;
     const lastProduct = await Product.findOne({ sku: /^MFD-\d{3,}$/ }).sort({ sku: -1 });
     if (lastProduct) {
       const match = lastProduct.sku.match(/^MFD-(\d+)$/);
@@ -109,6 +115,8 @@ const createProduct = async (req, res) => {
   });
 
   const createdProduct = await product.save();
+  invalidateCache('products');
+  invalidateCache('content');
   res.status(201).json(createdProduct);
 };
 
@@ -151,6 +159,8 @@ const updateProduct = async (req, res) => {
     product.isBestSeller = isBestSeller !== undefined ? isBestSeller : product.isBestSeller;
 
     const updatedProduct = await product.save();
+    invalidateCache('products');
+    invalidateCache('content');
     res.json(updatedProduct);
   } else {
     res.status(404);
@@ -166,6 +176,8 @@ const deleteProduct = async (req, res) => {
 
   if (product) {
     await Product.deleteOne({ _id: product._id });
+    invalidateCache('products');
+    invalidateCache('content');
     res.json({ message: 'Product removed' });
   } else {
     res.status(404);

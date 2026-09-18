@@ -1,13 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { optimizeImageUrl } from '../../utils/imageOptimizer';
 
 const StoreLocator = ({ data }) => {
   return (
     <section className="py-2 bg-white">
-      <Link to={data?.link || "/pages/store-locator"} className="block relative w-full h-[60vh] md:h-[70vh] group overflow-hidden">
+      <Link to={data?.link || "/pages/store-locator"} className="block relative w-full h-[60vh] md:h-[70vh] group overflow-hidden bg-gray-100">
         <img 
-          src={data?.image || "/images/banner2.jpg"} 
+          src={optimizeImageUrl(data?.image || "/images/banner2.jpg", { width: 1400, quality: 'auto:good' })} 
           alt={data?.title || "Store Interior"} 
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors duration-500"></div>

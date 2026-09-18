@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { mockApi } from '../../data/mockApi';
+import { optimizeImageUrl } from '../../utils/imageOptimizer';
 
 /* ─── Individual product card — uses named group/card so hover is isolated ─── */
 const NewInCard = ({ product }) => {
@@ -19,25 +20,30 @@ const NewInCard = ({ product }) => {
   const isFreeSize = availSizes.some(s => typeof s === 'string' && s.toLowerCase().includes('free'));
   const sizeLabel = isFreeSize ? 'FREE SIZE' : availSizes.join('  ');
 
+  const img1 = optimizeImageUrl(images[0], { width: 600, quality: 'auto:good' });
+  const img2 = hasHover ? optimizeImageUrl(images[1], { width: 600, quality: 'auto:good' }) : null;
+
   return (
     /* group/card — named group so hover ONLY affects THIS card */
     <div className="group/card flex flex-col h-full w-full shrink-0 bg-white">
       {/* Image area — fills available height */}
-      <Link to={productUrl} className="relative flex-1 min-h-0 block overflow-hidden">
+      <Link to={productUrl} className="relative flex-1 min-h-0 block overflow-hidden bg-gray-50">
         {/* Primary image */}
         <img
-          src={images[0]}
-          alt={product.title}
+          src={img1}
+          alt={product.title || product.sku}
           loading="lazy"
+          decoding="async"
           className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-500
             ${hasHover ? 'group-hover/card:opacity-0' : ''}`}
         />
         {/* Hover image — only shows on THIS card's hover */}
-        {hasHover && (
+        {hasHover && img2 && (
           <img
-            src={images[1]}
-            alt={`${product.title} alt`}
+            src={img2}
+            alt={`${product.title || product.sku} alt`}
             loading="lazy"
+            decoding="async"
             className="absolute inset-0 w-full h-full object-cover object-top opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"
           />
         )}
@@ -117,8 +123,10 @@ const NewInSection = ({ data }) => {
           style={{ width: COVER_W }}
         >
           <img
-            src={data?.image || '/images/prod5.jpg'}
+            src={optimizeImageUrl(data?.image || '/images/prod5.jpg', { width: 600, quality: 'auto:good' })}
             alt={data?.title || 'New In'}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover object-top transition-transform duration-700 hover:scale-[1.04]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />

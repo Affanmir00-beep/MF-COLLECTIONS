@@ -3,9 +3,11 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Flame, Eye, Ruler, Heart, Plus, Minus, ChevronLeft, ChevronRight } from 'lucide-react';
 import useCartStore from '../store/cartStore';
 import ProductCard from '../components/product/ProductCard';
+import ProductDetailSkeleton from '../components/common/ProductDetailSkeleton';
 import SizeGuideModal from '../components/product/SizeGuideModal';
 import { mockApi } from '../data/mockApi';
 import useUIStore from '../store/uiStore';
+import { optimizeImageUrl } from '../utils/imageOptimizer';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -42,7 +44,7 @@ const ProductDetailPage = () => {
     mockApi.getProduct(id)
       .then(res => {
         setProduct(res);
-        return mockApi.getCollectionProducts(res.collectionHandles[0], { limit: 5 });
+        return mockApi.getCollectionProducts(res.collectionHandles?.[0] || 'all', { limit: 5 });
       })
       .then(relatedRes => {
         setRelated(relatedRes.items.filter(p => p.id !== id).slice(0, 4));
@@ -54,7 +56,7 @@ const ProductDetailPage = () => {
       });
   }, [id]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center font-sans tracking-widest uppercase text-sm">Loading...</div>;
+  if (loading) return <ProductDetailSkeleton />;
   if (error || !product) return <div className="min-h-screen flex items-center justify-center font-sans tracking-widest uppercase text-red-500 text-sm">Product Not Found</div>;
 
   const handleAddToCart = () => {
@@ -108,7 +110,13 @@ const ProductDetailPage = () => {
                   onClick={() => setActiveImage(idx)}
                   className={`w-full aspect-[3/4] shrink-0 overflow-hidden transition-all ${activeImage === idx ? 'border border-black p-0.5' : 'border border-transparent opacity-70 hover:opacity-100'}`}
                 >
-                  <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
+                  <img 
+                    src={optimizeImageUrl(img, { width: 160, quality: 'auto:good' })} 
+                    alt={`Thumbnail ${idx}`} 
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover" 
+                  />
                 </button>
               ))}
             </div>
@@ -120,8 +128,10 @@ const ProductDetailPage = () => {
                 {images.map((img, idx) => (
                   <div key={idx} className={`w-full shrink-0 snap-center md:h-auto ${idx !== activeImage ? 'md:hidden' : ''}`}>
                      <img 
-                      src={img} 
+                      src={optimizeImageUrl(img, { width: 1200, quality: 'auto:good' })} 
                       alt={product.title} 
+                      loading={idx === 0 ? "eager" : "lazy"}
+                      decoding="async"
                       className="w-full aspect-[3/4] md:h-[80vh] md:aspect-auto object-cover transition-transform duration-700 ease-out md:group-hover:scale-105 origin-center"
                     />
                   </div>

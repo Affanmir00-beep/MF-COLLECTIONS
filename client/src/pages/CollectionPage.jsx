@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { SlidersHorizontal, ChevronDown } from 'lucide-react';
 import ProductCard from '../components/product/ProductCard';
+import ProductGridSkeleton from '../components/common/ProductGridSkeleton';
 import FilterDrawer from '../components/layout/FilterDrawer';
 import { mockApi } from '../data/mockApi';
 import { useCursorPagination } from '../hooks/useCursorPagination';
@@ -148,7 +149,7 @@ const CollectionPage = () => {
           <>
             <div className={`grid ${gridClassMap[gridCols]}`}>
               {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id || product.sku} product={product} />
               ))}
             </div>
 
@@ -160,7 +161,7 @@ const CollectionPage = () => {
                   disabled={isLoading}
                   className="mf-btn-primary disabled:opacity-50"
                 >
-                  {isLoading ? 'Loading...' : 'Load More'}
+                  {isLoading ? 'Loading More...' : 'Load More'}
                 </button>
               )}
               {/* Invisible sentinel element to trigger IntersectionObserver */}
@@ -168,8 +169,8 @@ const CollectionPage = () => {
             </div>
           </>
         ) : isLoading ? (
-          <div className="h-[50vh] flex items-center justify-center uppercase tracking-widest text-xs font-sans">
-            Loading...
+          <div className="w-full py-6">
+            <ProductGridSkeleton count={8} gridCols={gridCols} />
           </div>
         ) : (
           <div className="text-center py-32 font-sans tracking-widest uppercase text-sm">

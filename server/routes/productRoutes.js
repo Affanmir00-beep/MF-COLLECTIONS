@@ -8,13 +8,14 @@ const {
   deleteProduct
 } = require('../controllers/productController');
 const { protect, adminOnly } = require('../middlewares/authMiddleware');
+const { cacheResponse } = require('../middlewares/cacheMiddleware');
 
 router.route('/')
-  .get(getProducts)
+  .get(cacheResponse(180, 'products'), getProducts)
   .post(protect, adminOnly, createProduct);
 
 router.route('/:id')
-  .get(getProductById)
+  .get(cacheResponse(300, 'products'), getProductById)
   .put(protect, adminOnly, updateProduct)
   .delete(protect, adminOnly, deleteProduct);
 

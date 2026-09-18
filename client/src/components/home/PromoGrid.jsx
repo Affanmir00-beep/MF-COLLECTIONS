@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { optimizeImageUrl } from '../../utils/imageOptimizer';
 
 const PromoGrid = ({ data = [] }) => {
   if (!data || data.length < 3) return null;
@@ -11,14 +12,16 @@ const PromoGrid = ({ data = [] }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-[2px]">
         
         {/* Left Large Promo */}
-        <div className="relative group overflow-hidden block h-[50vh] md:h-[70vh]">
+        <div className="relative group overflow-hidden block h-[50vh] md:h-[70vh] bg-gray-100">
           <Link 
             to={leftPromo.link}
             className="w-full h-full block"
           >
             <img 
-              src={leftPromo.image} 
+              src={optimizeImageUrl(leftPromo.image, { width: 1000, quality: 'auto:good' })} 
               alt={leftPromo.title}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div className="absolute inset-0 mf-gradient-bottom"></div>
@@ -35,11 +38,13 @@ const PromoGrid = ({ data = [] }) => {
         <div className="grid grid-rows-2 gap-[2px] h-[50vh] md:h-[70vh]">
           <Link 
               to={topRightPromo.link}
-              className="relative group overflow-hidden block w-full h-full"
+              className="relative group overflow-hidden block w-full h-full bg-gray-100"
             >
               <img 
-                src={topRightPromo.image} 
+                src={optimizeImageUrl(topRightPromo.image, { width: 800, quality: 'auto:good' })} 
                 alt={topRightPromo.title}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 mf-overlay-dark"></div>
@@ -51,11 +56,13 @@ const PromoGrid = ({ data = [] }) => {
 
           <Link 
               to={bottomRightPromo.link}
-              className="relative group overflow-hidden block w-full h-full"
+              className="relative group overflow-hidden block w-full h-full bg-gray-100"
             >
               <img 
-                src={bottomRightPromo.image} 
+                src={optimizeImageUrl(bottomRightPromo.image, { width: 800, quality: 'auto:good' })} 
                 alt={bottomRightPromo.title}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 mf-overlay-dark"></div>
