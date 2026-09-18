@@ -21,8 +21,7 @@ const SizeGuidePage = lazy(() => import('./pages/SizeGuidePage'));
 const CustomOrdersPage = lazy(() => import('./pages/CustomOrdersPage'));
 
 // Auth Pages (Lazy loaded)
-const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
-const SignupPage = lazy(() => import('./pages/auth/SignupPage'));
+const OtpAuthPage = lazy(() => import('./pages/auth/OtpAuthPage'));
 const ProfilePage = lazy(() => import('./pages/auth/ProfilePage'));
 
 // Admin Pages (Lazy loaded)
@@ -69,8 +68,8 @@ function App() {
               <main className="flex-grow">
                 <Routes>
                   <Route path="/" element={<HomePage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/signup" element={<SignupPage />} />
+                  <Route path="/login" element={<OtpAuthPage />} />
+                  <Route path="/signup" element={<OtpAuthPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/collections/:handle" element={<CollectionPage />} />
                   <Route path="/collections/:handle/products/:id" element={<ProductDetailPage />} />

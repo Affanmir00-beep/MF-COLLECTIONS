@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const sendEmail = require('../utils/sendEmail');
 
 const requireSecret = () => {
   if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
@@ -45,44 +46,57 @@ const loginUser = async (req, res) => {
   }
 };
 
-const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
-  const userExists = await User.findOne({ email });
+const requestOtp = async (req, res) => {
+  const { email } = req.body;
+  let user = await User.findOne({ email });
+  const isNewUser = !user;
 
-  if (userExists) {
-    res.status(400);
-    throw new Error('User already exists');
+  if (!user) {
+    user = await User.create({
+      name: 'Guest User',
+      email,
+      isVerified: false
+    });
   }
 
   const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
   const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
-  const user = await User.create({
-    name, email, password, otpCode, otpExpiresAt
-  });
+  user.otpCode = otpCode;
+  user.otpExpiresAt = otpExpiresAt;
+  await user.save();
 
-  if (user) {
-    // TODO: Actually send the OTP via notification.service.js
-    console.log(`OTP for ${email} is ${otpCode}`);
-    res.status(201).json({ message: 'User registered. Please verify OTP sent to your email.' });
-  } else {
-    res.status(400);
-    throw new Error('Invalid user data');
-  }
+  // Send the OTP via email
+  const emailHtml = `
+    <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; text-align: center;">
+      <h2 style="color: #111;">MF Designs Login</h2>
+      <p style="color: #444; font-size: 16px;">Your One-Time Password (OTP) is:</p>
+      <div style="background-color: #f4f4f4; padding: 20px; font-size: 32px; letter-spacing: 5px; font-weight: bold; margin: 20px 0; border-radius: 8px;">
+        ${otpCode}
+      </div>
+      <p style="color: #777; font-size: 14px;">This code expires in 10 minutes. Do not share it with anyone.</p>
+    </div>
+  `;
+
+  await sendEmail({
+    to: email,
+    subject: 'Your MF Designs Login Code',
+    html: emailHtml,
+  });
+  
+  res.status(200).json({ 
+    message: 'OTP sent to your email.',
+    isNewUser 
+  });
 };
 
 const verifyOtp = async (req, res) => {
-  const { email, otpCode } = req.body;
+  const { email, otpCode, name } = req.body;
   const user = await User.findOne({ email });
 
   if (!user) {
     res.status(404);
     throw new Error('User not found');
-  }
-
-  if (user.isVerified) {
-    res.status(400);
-    throw new Error('User already verified');
   }
 
   if (user.otpCode !== otpCode || user.otpExpiresAt < new Date()) {
@@ -93,6 +107,11 @@ const verifyOtp = async (req, res) => {
   user.isVerified = true;
   user.otpCode = undefined;
   user.otpExpiresAt = undefined;
+  
+  if (name && user.name === 'Guest User') {
+    user.name = name;
+  }
+
   await user.save();
 
   await generateTokens(res, user);
@@ -190,7 +209,7 @@ const seedAdminController = async (req, res) => {
 
 module.exports = {
   loginUser,
-  registerUser,
+  requestOtp,
   verifyOtp,
   refreshAuth,
   logoutUser,

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { optimizeImageUrl } from '../../utils/imageOptimizer';
+import ProgressiveImage from '../common/ProgressiveImage';
 
 const CollectionsGrid = ({ data = [] }) => {
   if (!data || data.length === 0) return null;
@@ -14,15 +15,14 @@ const CollectionsGrid = ({ data = [] }) => {
             to={col.link}
             className="relative group overflow-hidden block aspect-[4/5] bg-gray-100"
           >
-            <img
-              src={optimizeImageUrl(col.image, { width: 800, quality: 'auto:good' })}
+            <ProgressiveImage
+              src={optimizeImageUrl(col.image, { width: 600, quality: 'auto:good' })}
               alt={col.title}
-              loading="lazy"
-              decoding="async"
+              priority={idx < 2}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             {/* Dark overlay for text legibility */}
-            <div className="absolute inset-0 mf-overlay-dark"></div>
+            <div className="absolute inset-0 mf-overlay-dark pointer-events-none"></div>
 
             <div className="absolute inset-0 flex flex-col justify-center items-center px-4 text-center">
               <span className="font-sans text-[0.8125rem] md:text-sm font-semibold tracking-[0.15em] uppercase text-white">

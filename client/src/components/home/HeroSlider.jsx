@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { optimizeImageUrl } from '../../utils/imageOptimizer';
 
 /**
  * HeroSlider — 16:9 Full-Bleed Widescreen Video Banner (Matching Vanya)
@@ -65,13 +66,14 @@ const HeroSlider = ({ data = [] }) => {
             {isVideo ? (
               <video
                 ref={isActive ? activeVideoRef : null}
-                src={slide.videoUrl}
-                poster={slide.image}
+                src={optimizeImageUrl(slide.videoUrl, { quality: 'auto:good' })}
+                poster={optimizeImageUrl(slide.image, { width: 1200, quality: 'auto:good' })}
                 muted
                 playsInline
                 autoPlay={isActive}
                 loop={total === 1}
                 preload={isActive ? 'auto' : 'metadata'}
+                fetchpriority={isActive ? "high" : "auto"}
                 onEnded={nextSlide}
                 onError={() => {
                   if (total > 1) nextSlide();
@@ -80,8 +82,10 @@ const HeroSlider = ({ data = [] }) => {
               />
             ) : (
               <img
-                src={slide.image}
+                src={optimizeImageUrl(slide.image, { width: 1200, quality: 'auto:good' })}
                 alt={slide.title || 'Hero Slide'}
+                fetchpriority={isActive ? "high" : "auto"}
+                loading={isActive ? "eager" : "lazy"}
                 className="w-full h-full object-cover block"
               />
             )}

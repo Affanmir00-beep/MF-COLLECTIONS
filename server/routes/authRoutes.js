@@ -3,14 +3,14 @@ const router = express.Router();
 const validate = require('../middlewares/validate');
 const { authLimiter } = require('../middlewares/rateLimiters');
 const {
-  registerSchema,
+  requestOtpSchema,
   loginSchema,
   verifyOtpSchema
 } = require('../validators/auth.schema');
 
 const {
   loginUser,
-  registerUser,
+  requestOtp,
   verifyOtp,
   refreshAuth,
   logoutUser,
@@ -19,7 +19,7 @@ const {
 } = require('../controllers/authController');
 
 router.post('/login', authLimiter, validate(loginSchema), loginUser);
-router.post('/register', authLimiter, validate(registerSchema), registerUser);
+router.post('/request-otp', authLimiter, validate(requestOtpSchema), requestOtp);
 router.post('/verify-otp', authLimiter, validate(verifyOtpSchema), verifyOtp);
 router.post('/refresh', refreshAuth);
 router.post('/logout', logoutUser);

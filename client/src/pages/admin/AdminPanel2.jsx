@@ -32,18 +32,35 @@ const EMPTY_FORM = {
 
 // ── Login Screen ──────────────────────────────────────────────────────────────
 const LoginScreen = ({ onLogin }) => {
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
 
-  const handleLogin = async (e) => {
+  const handleRequestOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+    setLoading(true);
+    try {
+      const { data } = await api.post('/auth/request-otp', { email });
+      setMessage(data.message || 'OTP sent to your email.');
+      setStep(2);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const { data } = await api.post('/auth/login', { email, password });
+      const { data } = await api.post('/auth/verify-otp', { email, otpCode });
       if (data.role !== 'admin' && data.role !== 'superadmin') {
         setError('Access denied. Admin credentials required.');
         setLoading(false);
@@ -51,7 +68,7 @@ const LoginScreen = ({ onLogin }) => {
       }
       onLogin(data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials');
+      setError(err.response?.data?.message || 'Invalid or expired OTP');
     } finally {
       setLoading(false);
     }
@@ -72,42 +89,56 @@ const LoginScreen = ({ onLogin }) => {
           <p className="text-white/40 text-xs mt-1 tracking-widest uppercase">Product Upload Portal</p>
         </div>
         <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-8">
-          <h2 className="text-white text-lg font-medium mb-6">Sign In</h2>
+          <h2 className="text-white text-lg font-medium mb-6">{step === 1 ? 'Sign In' : 'Verify OTP'}</h2>
+          
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-lg mb-5">
               {error}
             </div>
           )}
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-white/50 text-xs uppercase tracking-widest mb-2">Email</label>
-              <input
-                type="email" required value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-white/40 transition-colors"
-                placeholder="admin@mfdesigns.com"
-              />
+          {message && step === 2 && !error && (
+            <div className="bg-green-500/10 border border-green-500/20 text-green-400 text-sm px-4 py-3 rounded-lg mb-5">
+              {message}
             </div>
-            <div>
-              <label className="block text-white/50 text-xs uppercase tracking-widest mb-2">Password</label>
-              <div className="relative">
+          )}
+
+          {step === 1 ? (
+            <form onSubmit={handleRequestOtp} className="space-y-4">
+              <div>
+                <label className="block text-white/50 text-xs uppercase tracking-widest mb-2">Email</label>
                 <input
-                  type={showPassword ? 'text' : 'password'} required value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 rounded-lg px-4 py-3 pr-12 text-sm focus:outline-none focus:border-white/40 transition-colors"
-                  placeholder="••••••••"
+                  type="email" required value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-white/40 transition-colors"
+                  placeholder="admin@mfdesigns.com"
                 />
-                <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors">
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
               </div>
-            </div>
-            <button type="submit" disabled={loading}
-              className="w-full bg-white text-black font-semibold py-3 rounded-lg text-sm uppercase tracking-widest hover:bg-white/90 transition-colors disabled:opacity-50 mt-2">
-              {loading ? 'Signing in…' : 'Sign In'}
-            </button>
-          </form>
+              <button type="submit" disabled={loading}
+                className="w-full bg-white text-black font-semibold py-3 rounded-lg text-sm uppercase tracking-widest hover:bg-white/90 transition-colors disabled:opacity-50 mt-2">
+                {loading ? 'Sending...' : 'Send OTP'}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
+              <div>
+                <label className="block text-white/50 text-xs uppercase tracking-widest mb-2">6-Digit OTP</label>
+                <input
+                  type="text" required maxLength="6" value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 rounded-lg px-4 py-3 text-center tracking-[0.5em] text-lg focus:outline-none focus:border-white/40 transition-colors"
+                  placeholder="------"
+                />
+              </div>
+              <button type="submit" disabled={loading || otpCode.length !== 6}
+                className="w-full bg-white text-black font-semibold py-3 rounded-lg text-sm uppercase tracking-widest hover:bg-white/90 transition-colors disabled:opacity-50 mt-2">
+                {loading ? 'Verifying...' : 'Verify & Login'}
+              </button>
+              <button type="button" onClick={() => setStep(1)}
+                className="w-full text-white/50 hover:text-white transition-colors text-xs uppercase tracking-widest mt-4">
+                Change Email
+              </button>
+            </form>
+          )}
         </div>
         <p className="text-center text-white/20 text-xs mt-6">Admin Panel 2 — Product Upload Only</p>
       </div>
