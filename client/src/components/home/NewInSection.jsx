@@ -71,8 +71,33 @@ const NewInCard = ({ product }) => {
   );
 };
 
+/* ─── NewInSection skeleton ─── */
+const NewInSectionSkeleton = () => (
+  <section className="bg-white w-full">
+    <div className="flex items-center justify-between pt-8 pb-3 px-4">
+      <div className="h-3 w-16 bg-gray-200 animate-pulse rounded-sm" />
+      <div className="h-3 w-14 bg-gray-100 animate-pulse rounded-sm" />
+    </div>
+    <div className="flex gap-[2px] overflow-hidden" style={{ height: 'clamp(440px, 70vh, 760px)' }}>
+      {/* Cover placeholder */}
+      <div className="shrink-0 bg-gray-100 animate-pulse" style={{ width: 'clamp(180px, 23%, 290px)' }} />
+      {/* Card placeholders */}
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="shrink-0 flex flex-col" style={{ width: 'clamp(190px, 22vw, 270px)' }}>
+          <div className="flex-1 bg-gray-100 animate-pulse" />
+          <div className="pt-2 pb-3 px-1 space-y-1.5">
+            <div className="h-2.5 w-20 bg-gray-200 rounded-sm" />
+            <div className="h-2 w-14 bg-gray-100 rounded-sm" />
+            <div className="h-3 w-16 bg-gray-200 rounded-sm" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+);
+
 /* ─── NewInSection ─── */
-const NewInSection = ({ data }) => {
+const NewInSection = ({ data, loading: parentLoading = false }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const trackRef = useRef(null);
@@ -90,7 +115,7 @@ const NewInSection = ({ data }) => {
     trackRef.current.scrollBy({ left: dir === 'right' ? cardW : -cardW, behavior: 'smooth' });
   };
 
-  if (loading || !products.length) return null;
+  if (loading || parentLoading || !products.length) return <NewInSectionSkeleton />;
 
   const COVER_W = 'clamp(180px, 23%, 290px)';
   const SECTION_H = 'clamp(440px, 70vh, 760px)';

@@ -8,13 +8,23 @@ import { optimizeImageUrl } from '../../utils/imageOptimizer';
  * - Top & bottom take 100% full space with zero black bars or letterboxing
  * - Infinite sequential loop across multiple videos
  */
-const HeroSlider = ({ data = [] }) => {
+const HeroSlider = ({ data = [], loading = false }) => {
   const [current, setCurrent] = useState(0);
   const activeVideoRef = useRef(null);
 
   // Keep slides that have videoUrl (or fallback to image if no video configured)
   const slides = (data || []).filter(s => s && (s.videoUrl || s.image));
   const total = slides.length;
+
+  // Show skeleton while loading or no data yet
+  if (loading || slides.length === 0) {
+    return (
+      <div className="w-full aspect-video md:h-[85vh] bg-gray-100 animate-pulse relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+      </div>
+    );
+  }
+
 
   const nextSlide = useCallback(() => {
     if (total <= 1) {

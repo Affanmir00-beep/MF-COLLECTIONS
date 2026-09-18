@@ -1,6 +1,26 @@
 import React, { useState, useRef } from 'react';
 import { Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import VideoShoppingModal from './VideoShoppingModal';
+import apiClient from '../../api/apiClient';
+import { optimizeImageUrl } from '../../utils/imageOptimizer';
+
+// Skeleton for Watch & Buy section
+const WatchAndBuySkeleton = () => (
+  <section className="bg-white py-6 md:py-8">
+    <div className="text-center mb-5">
+      <div className="h-3 w-28 bg-gray-200 animate-pulse rounded-sm mx-auto" />
+    </div>
+    <div className="flex gap-2 px-4 overflow-hidden">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="shrink-0 bg-gray-100 animate-pulse rounded-sm"
+          style={{ width: 'clamp(140px, 22vw, 210px)', aspectRatio: '9/16' }}
+        />
+      ))}
+    </div>
+  </section>
+);
 
 /**
  * VideoCard — video always plays on loop (auto), no hover-to-play
@@ -8,6 +28,10 @@ import VideoShoppingModal from './VideoShoppingModal';
  */
 const VideoCard = ({ item, onClick }) => {
   const isVideo = item.videoUrl && !item.videoUrl.includes('instagram.com');
+  // Optimize poster image via Cloudinary transforms
+  const optimizedPoster = item.coverImage
+    ? optimizeImageUrl(item.coverImage, { width: 400, quality: 'auto:good' })
+    : undefined;
 
   return (
     <div
@@ -18,7 +42,7 @@ const VideoCard = ({ item, onClick }) => {
       {isVideo ? (
         <video
           src={item.videoUrl}
-          poster={item.coverImage}
+          poster={optimizedPoster}
           autoPlay
           muted
           playsInline
@@ -28,8 +52,10 @@ const VideoCard = ({ item, onClick }) => {
         />
       ) : (
         <img
-          src={item.coverImage}
+          src={optimizedPoster || item.coverImage}
           alt="thumbnail"
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover"
         />
       )}
@@ -46,7 +72,7 @@ const VideoCard = ({ item, onClick }) => {
       {/* sku thumbnail */}
       <div className="absolute bottom-3 left-2.5 flex items-center gap-1.5 z-10 pointer-events-none">
         <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30 bg-white/10">
-          <img src={item.coverImage} alt="sku" className="w-full h-full object-cover" />
+          <img src={optimizedPoster || item.coverImage} alt="sku" className="w-full h-full object-cover" />
         </div>
         <span className="text-white text-[10px] font-sans font-medium drop-shadow-md">
           {item.productSku}
@@ -60,9 +86,8 @@ const VideoCard = ({ item, onClick }) => {
  * WatchAndBuy
  * - Videos auto-play on loop (always)
  * - Prev / Next buttons scroll through cards
- * - No auto-scroll animation — user scrolls with buttons
  */
-const WatchAndBuy = ({ data = [] }) => {
+const WatchAndBuy = ({ data = [], loading = false }) => {
   const [activeVideo, setActiveVideo] = useState(null);
   const trackRef = useRef(null);
 
@@ -83,6 +108,7 @@ const WatchAndBuy = ({ data = [] }) => {
     }
   };
 
+  if (loading) return <WatchAndBuySkeleton />;
   if (!data || data.length === 0) return null;
 
   return (

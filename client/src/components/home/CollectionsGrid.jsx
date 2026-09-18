@@ -3,7 +3,21 @@ import { Link } from 'react-router-dom';
 import { optimizeImageUrl } from '../../utils/imageOptimizer';
 import ProgressiveImage from '../common/ProgressiveImage';
 
-const CollectionsGrid = ({ data = [] }) => {
+// Skeleton for collections grid
+const CollectionsGridSkeleton = () => (
+  <div className="mf-container-bleed pt-2 md:pt-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-[2px]">
+      {Array.from({ length: 6 }).map((_, idx) => (
+        <div key={idx} className="relative aspect-[4/5] bg-gray-100 animate-pulse overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const CollectionsGrid = ({ data = [], loading = false }) => {
+  if (loading) return <CollectionsGridSkeleton />;
   if (!data || data.length === 0) return null;
 
   return (

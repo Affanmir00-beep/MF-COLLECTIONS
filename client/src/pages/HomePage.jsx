@@ -9,7 +9,6 @@ import FormalsSplit from '../components/home/FormalsSplit';
 import CoOrdsPromo from '../components/home/CoOrdsPromo';
 import StoreLocator from '../components/home/StoreLocator';
 import SpottedGallery from '../components/home/SpottedGallery';
-import HomeHeroSkeleton from '../components/common/HomeHeroSkeleton';
 
 const HomePage = () => {
   const [config, setConfig] = useState(null);
@@ -30,21 +29,18 @@ const HomePage = () => {
     fetchConfig();
   }, []);
 
-  if (loading) {
-    return <HomeHeroSkeleton />;
-  }
-
+  // Render all sections immediately — each component shows its own skeleton while loading=true
   return (
     <div className="animate-fade-in">
-      <HeroSlider data={config?.heroSlider} />
-      <CollectionsGrid data={config?.collectionsGrid} />
-      <WatchAndBuy data={config?.watchAndBuy} />
-      <PromoGrid data={config?.promoGrid} />
-      <NewInSection data={config?.newInBanner} />
-      <FormalsSplit data={config?.formalsSplit} />
-      <CoOrdsPromo data={config?.coOrdsBanner} />
-      <StoreLocator data={config?.storeLocatorBanner} />
-      <SpottedGallery data={config?.spottedGallery} />
+      <HeroSlider data={config?.heroSlider} loading={loading} />
+      <CollectionsGrid data={config?.collectionsGrid} loading={loading} />
+      <WatchAndBuy data={config?.watchAndBuy} loading={loading} />
+      <PromoGrid data={config?.promoGrid} loading={loading} />
+      <NewInSection data={config?.newInBanner} loading={loading} />
+      <FormalsSplit data={config?.formalsSplit} loading={loading} />
+      <CoOrdsPromo data={config?.coOrdsBanner} loading={loading} />
+      <StoreLocator data={config?.storeLocatorBanner} loading={loading} />
+      <SpottedGallery data={config?.spottedGallery} loading={loading} />
     </div>
   );
 };
