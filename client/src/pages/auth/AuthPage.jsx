@@ -31,7 +31,12 @@ const AuthPage = () => {
         } else {
           // Direct login (Admin)
           setUserInfo(data);
-          const defaultAdminRoute = (data.role === 'admin' || data.role === 'superadmin') ? '/admin/dashboard' : '/';
+          // If restricted admin (has permissions), send them to their allowed section
+          const perms = data.permissions || [];
+          const isRestricted = (data.role === 'admin' || data.role === 'superadmin') && perms.length > 0;
+          const defaultAdminRoute = (data.role === 'admin' || data.role === 'superadmin')
+            ? (isRestricted ? `/admin/${perms[0]}` : '/admin/dashboard')
+            : '/';
           navigate(location.state?.from?.pathname || defaultAdminRoute);
         }
       } else {

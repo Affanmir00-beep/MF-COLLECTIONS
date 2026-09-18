@@ -14,24 +14,51 @@ const AdminRouteGuard = () => {
   }
 
   if (userInfo.role !== 'admin' && userInfo.role !== 'superadmin') {
-    // If logged in but not admin, kick them out to homepage
     return <Navigate to="/" replace />;
   }
 
+  // Determine which nav items this admin can see.
+  // If permissions array is empty = full access (superadmin or main admin).
+  // If permissions array has items = restricted admin.
+  const perms = userInfo.permissions || [];
+  const isRestricted = perms.length > 0;
+  const can = (section) => !isRestricted || perms.includes(section);
+
+  // If restricted admin tries to access a page they shouldn't, redirect to products
+  const restrictedPaths = ['/admin/dashboard', '/admin/storefront', '/admin/categories', '/admin/orders'];
+  if (isRestricted && restrictedPaths.includes(location.pathname)) {
+    return <Navigate to="/admin/products" replace />;
+  }
+
+  // Nav items definition
+  const navItems = [
+    { label: 'Dashboard', path: '/admin/dashboard', section: 'dashboard' },
+    { label: 'Storefront', path: '/admin/storefront', section: 'storefront' },
+    { label: 'Categories', path: '/admin/categories', section: 'categories' },
+    { label: 'Products', path: '/admin/products', section: 'products' },
+    { label: 'Orders', path: '/admin/orders', section: 'orders' },
+  ];
+
   return (
     <div className="flex min-h-screen bg-gray-50 font-sans">
-      {/* Basic Sidebar for Admin */}
+      {/* Sidebar */}
       <aside className="w-64 bg-[#111111] text-white hidden md:flex flex-col">
         <div className="p-6">
           <h2 className="font-serif tracking-widest text-2xl uppercase">MF Designs</h2>
-          <p className="text-gray-400 text-xs mt-1">Admin Control Panel</p>
+          <p className="text-gray-400 text-xs mt-1">
+            {isRestricted ? 'Product Manager' : 'Admin Control Panel'}
+          </p>
         </div>
         <nav className="flex-1 px-4 space-y-2 mt-4">
-          <Link to="/admin/dashboard" className={`block px-4 py-3 rounded transition-colors uppercase text-xs tracking-widest ${isActive('/admin/dashboard') ? 'bg-white/10' : 'hover:bg-white/10'}`}>Dashboard</Link>
-          <Link to="/admin/storefront" className={`block px-4 py-3 rounded transition-colors uppercase text-xs tracking-widest ${isActive('/admin/storefront') ? 'bg-white/10' : 'hover:bg-white/10'}`}>Storefront</Link>
-          <Link to="/admin/categories" className={`block px-4 py-3 rounded transition-colors uppercase text-xs tracking-widest ${isActive('/admin/categories') ? 'bg-white/10' : 'hover:bg-white/10'}`}>Categories</Link>
-          <Link to="/admin/products" className={`block px-4 py-3 rounded transition-colors uppercase text-xs tracking-widest ${isActive('/admin/products') ? 'bg-white/10' : 'hover:bg-white/10'}`}>Products</Link>
-          <Link to="/admin/orders" className={`block px-4 py-3 rounded transition-colors uppercase text-xs tracking-widest ${isActive('/admin/orders') ? 'bg-white/10' : 'hover:bg-white/10'}`}>Orders</Link>
+          {navItems.filter(item => can(item.section)).map(item => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`block px-4 py-3 rounded transition-colors uppercase text-xs tracking-widest ${isActive(item.path) ? 'bg-white/10' : 'hover:bg-white/10'}`}
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
         <div className="p-4">
           <button
@@ -60,3 +87,4 @@ const AdminRouteGuard = () => {
 };
 
 export default AdminRouteGuard;
+

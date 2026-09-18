@@ -7,6 +7,9 @@ const userSchema = new mongoose.Schema({
   password: { type: String, minlength: 6 }, // Password is optional (for Google Auth)
   googleId: { type: String },
   role: { type: String, enum: ['customer', 'admin', 'superadmin'], default: 'customer' },
+  // For admin role: restrict which sections they can access. Empty = full access.
+  permissions: { type: [String], enum: ['products', 'orders', 'categories', 'storefront', 'dashboard'], default: [] },
+
   phone: { type: String },
   addresses: [{
     fullName: String, 

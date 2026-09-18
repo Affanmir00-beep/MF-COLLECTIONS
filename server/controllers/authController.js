@@ -90,7 +90,7 @@ const loginUser = async (req, res) => {
     // If user is admin or superadmin, bypass OTP and log them in instantly
     if (user.role === 'admin' || user.role === 'superadmin') {
       await generateTokens(res, user);
-      return res.json({ _id: user._id, name: user.name, email: user.email, role: user.role, requiresOtp: false });
+      return res.json({ _id: user._id, name: user.name, email: user.email, role: user.role, permissions: user.permissions || [], requiresOtp: false });
     }
 
     // Regular customers - Trigger 2FA (OTP)
