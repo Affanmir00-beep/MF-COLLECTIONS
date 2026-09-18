@@ -206,11 +206,60 @@ const logoutUser = async (req, res) => {
   res.status(200).json({ message: 'Logged out successfully' });
 };
 
+const loginAdmin = async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+
+  if (user && (await user.matchPassword(password))) {
+    if (user.role === 'admin' || user.role === 'superadmin') {
+      await generateTokens(res, user);
+      res.json({ _id: user._id, name: user.name, email: user.email, role: user.role });
+    } else {
+      res.status(403);
+      throw new Error('Access denied. Not an admin.');
+    }
+  } else {
+    res.status(401);
+    throw new Error('Invalid email or password');
+  }
+};
+
+const seedAdminController = async (req, res) => {
+  try {
+    let admin = await User.findOne({ email: 'admin@mfdesigns.com' });
+    if (!admin) {
+      admin = await User.create({
+        name: 'MF Designs Admin',
+        email: 'admin@mfdesigns.com',
+        password: 'password123',
+        role: 'admin',
+        isVerified: true
+      });
+    } else {
+      admin.password = 'password123';
+      admin.role = 'admin';
+      admin.isVerified = true;
+      await admin.save();
+    }
+    res.json({
+      success: true,
+      message: 'Admin account is ready to login!',
+      email: 'admin@mfdesigns.com',
+      password: 'password123',
+      role: 'admin'
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 module.exports = {
   signupUser,
   loginUser,
   verifyOtp,
   googleLogin,
   refreshAuth,
-  logoutUser
+  logoutUser,
+  loginAdmin,
+  seedAdminController
 };
