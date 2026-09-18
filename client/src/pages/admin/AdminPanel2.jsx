@@ -260,7 +260,7 @@ const ProductUploadPanel = ({ user, onLogout }) => {
         description: form.description.trim(),
         images: uploadedImages,
         variants: variants.map(v => ({ size: v.size, stock: Number(v.stock) || 0 })),
-        status: 'published',
+        status: 'draft',
         isNewArrival: form.isNewArrival,
         isFeatured: form.isFeatured,
         ...(form.compareAtPrice && { compareAtPrice: Number(form.compareAtPrice) }),
