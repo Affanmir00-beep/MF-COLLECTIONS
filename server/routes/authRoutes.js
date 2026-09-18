@@ -9,18 +9,20 @@ const {
 } = require('../validators/auth.schema');
 
 const {
+  signupUser,
   loginUser,
-  requestOtp,
   verifyOtp,
+  googleLogin,
   refreshAuth,
   logoutUser,
   loginAdmin,
   seedAdminController,
 } = require('../controllers/authController');
 
-router.post('/login', authLimiter, validate(loginSchema), loginUser);
-router.post('/request-otp', authLimiter, validate(requestOtpSchema), requestOtp);
-router.post('/verify-otp', authLimiter, validate(verifyOtpSchema), verifyOtp);
+router.post('/signup', signupUser);
+router.post('/login', loginUser);
+router.post('/verify-otp', verifyOtp);
+router.post('/google', googleLogin);
 router.post('/refresh', refreshAuth);
 router.post('/logout', logoutUser);
 

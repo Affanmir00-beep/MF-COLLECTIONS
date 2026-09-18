@@ -2,6 +2,10 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
+const { OAuth2Client } = require('google-auth-library');
+
+// We will use the client ID from env if provided
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const requireSecret = () => {
   if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
@@ -32,45 +36,11 @@ const generateTokens = async (res, user) => {
   res.cookie('refreshToken', refreshToken, { ...cookieOpts, maxAge: 7 * 24 * 60 * 60 * 1000 });
 };
 
-const loginUser = async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
-
-  if (user && (await user.matchPassword(password))) {
-    // Optionally trigger OTP here instead of logging in directly if you want strict 2FA
-    await generateTokens(res, user);
-    res.json({ _id: user._id, name: user.name, email: user.email, role: user.role });
-  } else {
-    res.status(401);
-    throw new Error('Invalid email or password');
-  }
-};
-
-const requestOtp = async (req, res) => {
-  const { email } = req.body;
-  let user = await User.findOne({ email });
-  const isNewUser = !user;
-
-  if (!user) {
-    user = await User.create({
-      name: 'Guest User',
-      email,
-      isVerified: false
-    });
-  }
-
-  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-  const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
-
-  user.otpCode = otpCode;
-  user.otpExpiresAt = otpExpiresAt;
-  await user.save();
-
-  // Send the OTP via email
+const sendOtpEmail = async (email, otpCode) => {
   const emailHtml = `
     <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; text-align: center;">
-      <h2 style="color: #111;">MF Designs Login</h2>
-      <p style="color: #444; font-size: 16px;">Your One-Time Password (OTP) is:</p>
+      <h2 style="color: #111;">MF Designs Security</h2>
+      <p style="color: #444; font-size: 16px;">Your One-Time Password (OTP) for Two-Factor Authentication is:</p>
       <div style="background-color: #f4f4f4; padding: 20px; font-size: 32px; letter-spacing: 5px; font-weight: bold; margin: 20px 0; border-radius: 8px;">
         ${otpCode}
       </div>
@@ -80,18 +50,60 @@ const requestOtp = async (req, res) => {
 
   await sendEmail({
     to: email,
-    subject: 'Your MF Designs Login Code',
+    subject: 'Your MF Designs Verification Code',
     html: emailHtml,
-  });
-  
-  res.status(200).json({ 
-    message: 'OTP sent to your email.',
-    isNewUser 
   });
 };
 
+const signupUser = async (req, res) => {
+  const { name, email, password } = req.body;
+  
+  let user = await User.findOne({ email });
+  if (user) {
+    res.status(400);
+    throw new Error('User already exists');
+  }
+
+  user = await User.create({
+    name,
+    email,
+    password,
+    isVerified: false
+  });
+
+  // Generate OTP
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  user.otpCode = otpCode;
+  user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+  await user.save();
+
+  await sendOtpEmail(email, otpCode);
+
+  res.status(201).json({ message: 'Signup successful. Please verify OTP sent to email.', email });
+};
+
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+
+  if (user && (await user.matchPassword(password))) {
+    // Correct password - Trigger 2FA (OTP)
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otpCode = otpCode;
+    user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+
+    await sendOtpEmail(email, otpCode);
+    
+    res.json({ message: 'Password correct. OTP sent.', requiresOtp: true, email });
+  } else {
+    res.status(401);
+    throw new Error('Invalid email or password');
+  }
+};
+
 const verifyOtp = async (req, res) => {
-  const { email, otpCode, name } = req.body;
+  const { email, otpCode } = req.body;
   const user = await User.findOne({ email });
 
   if (!user) {
@@ -107,12 +119,44 @@ const verifyOtp = async (req, res) => {
   user.isVerified = true;
   user.otpCode = undefined;
   user.otpExpiresAt = undefined;
+  await user.save();
+
+  await generateTokens(res, user);
+  res.json({ _id: user._id, name: user.name, email: user.email, role: user.role });
+};
+
+const googleLogin = async (req, res) => {
+  const { token } = req.body;
   
-  if (name && user.name === 'Guest User') {
-    user.name = name;
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    res.status(500);
+    throw new Error('Google Auth is not configured on the server.');
   }
 
-  await user.save();
+  const ticket = await googleClient.verifyIdToken({
+    idToken: token,
+    audience: process.env.GOOGLE_CLIENT_ID
+  });
+  
+  const payload = ticket.getPayload();
+  const { email, name, sub: googleId } = payload;
+
+  let user = await User.findOne({ email });
+
+  if (!user) {
+    // Create user via Google
+    user = await User.create({
+      name,
+      email,
+      googleId,
+      isVerified: true // Google already verified them
+    });
+  } else if (!user.googleId) {
+    // Link existing account with Google
+    user.googleId = googleId;
+    user.isVerified = true;
+    await user.save();
+  }
 
   await generateTokens(res, user);
   res.json({ _id: user._id, name: user.name, email: user.email, role: user.role });
@@ -162,57 +206,11 @@ const logoutUser = async (req, res) => {
   res.status(200).json({ message: 'Logged out successfully' });
 };
 
-const loginAdmin = async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
-
-  if (user && (await user.matchPassword(password))) {
-    if (user.role === 'admin' || user.role === 'superadmin') {
-      await generateTokens(res, user);
-      res.json({ _id: user._id, name: user.name, email: user.email, role: user.role });
-    } else {
-      res.status(403);
-      throw new Error('Access denied. Not an admin.');
-    }
-  } else {
-    res.status(401);
-    throw new Error('Invalid email or password');
-  }
-};
-
-const seedAdminController = async (req, res) => {
-  try {
-    let admin = await User.findOne({ email: 'admin@mfdesigns.com' });
-    if (!admin) {
-      admin = await User.create({
-        name: 'MF Designs Admin',
-        email: 'admin@mfdesigns.com',
-        password: 'password123',
-        role: 'admin'
-      });
-    } else {
-      admin.password = 'password123';
-      admin.role = 'admin';
-      await admin.save();
-    }
-    res.json({
-      success: true,
-      message: 'Admin account is ready to login!',
-      email: 'admin@mfdesigns.com',
-      password: 'password123',
-      role: 'admin'
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
 module.exports = {
+  signupUser,
   loginUser,
-  requestOtp,
   verifyOtp,
+  googleLogin,
   refreshAuth,
-  logoutUser,
-  loginAdmin,
-  seedAdminController
+  logoutUser
 };

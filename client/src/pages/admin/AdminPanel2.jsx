@@ -34,22 +34,25 @@ const EMPTY_FORM = {
 const LoginScreen = ({ onLogin }) => {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  const handleRequestOtp = async (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setMessage('');
     setLoading(true);
     try {
-      const { data } = await api.post('/auth/request-otp', { email });
-      setMessage(data.message || 'OTP sent to your email.');
-      setStep(2);
+      const { data } = await api.post('/auth/login', { email, password });
+      if (data.requiresOtp) {
+        setMessage(data.message || 'OTP sent to your email.');
+        setStep(2);
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send OTP');
+      setError(err.response?.data?.message || 'Invalid email or password');
     } finally {
       setLoading(false);
     }
@@ -103,7 +106,7 @@ const LoginScreen = ({ onLogin }) => {
           )}
 
           {step === 1 ? (
-            <form onSubmit={handleRequestOtp} className="space-y-4">
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
                 <label className="block text-white/50 text-xs uppercase tracking-widest mb-2">Email</label>
                 <input
@@ -113,9 +116,18 @@ const LoginScreen = ({ onLogin }) => {
                   placeholder="admin@mfdesigns.com"
                 />
               </div>
+              <div>
+                <label className="block text-white/50 text-xs uppercase tracking-widest mb-2">Password</label>
+                <input
+                  type="password" required value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-white/40 transition-colors"
+                  placeholder="••••••••"
+                />
+              </div>
               <button type="submit" disabled={loading}
                 className="w-full bg-white text-black font-semibold py-3 rounded-lg text-sm uppercase tracking-widest hover:bg-white/90 transition-colors disabled:opacity-50 mt-2">
-                {loading ? 'Sending...' : 'Send OTP'}
+                {loading ? 'Authenticating...' : 'Sign In'}
               </button>
             </form>
           ) : (
@@ -135,7 +147,7 @@ const LoginScreen = ({ onLogin }) => {
               </button>
               <button type="button" onClick={() => setStep(1)}
                 className="w-full text-white/50 hover:text-white transition-colors text-xs uppercase tracking-widest mt-4">
-                Change Email
+                Go Back
               </button>
             </form>
           )}
