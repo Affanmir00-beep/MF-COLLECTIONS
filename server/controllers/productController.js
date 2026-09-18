@@ -1,4 +1,5 @@
 const Product = require('../models/Product');
+const Category = require('../models/Category');
 const { paginateByCursor } = require('../utils/cursor');
 const { invalidateCache } = require('../middlewares/cacheMiddleware');
 
@@ -19,11 +20,21 @@ const getProducts = async (req, res) => {
 
   const mongoose = require('mongoose');
   let categoryFilter = {};
+
+  // Support category by ID or by slug (eliminates client waterfall)
   if (req.query.category) {
     if (mongoose.Types.ObjectId.isValid(req.query.category)) {
       categoryFilter = { category: req.query.category };
     } else {
       categoryFilter = { category: new mongoose.Types.ObjectId() };
+    }
+  } else if (req.query.categorySlug && req.query.categorySlug !== 'all') {
+    const cat = await Category.findOne({ slug: req.query.categorySlug }).select('_id').lean();
+    if (cat) {
+      categoryFilter = { category: cat._id };
+    } else {
+      // No matching category — return empty
+      return res.json({ products: [], nextCursor: null });
     }
   }
   
@@ -50,6 +61,7 @@ const getProducts = async (req, res) => {
     throw new Error('Invalid cursor or query');
   }
 };
+
 
 // @desc    Fetch single product
 // @route   GET /api/v1/products/:id

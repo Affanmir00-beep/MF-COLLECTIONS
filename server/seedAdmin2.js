@@ -1,29 +1,30 @@
-﻿require('dotenv').config();
+require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('./models/User');
 const connectDB = require('./config/db');
 
 const seedAdmin2 = async () => {
+  const email = process.env.ADMIN2_EMAIL;
+  const password = process.env.ADMIN2_PASSWORD;
+  const name = process.env.ADMIN2_NAME || 'Upload Admin';
+
+  if (!email || !password) {
+    console.error('Missing ADMIN2_EMAIL or ADMIN2_PASSWORD in .env');
+    process.exit(1);
+  }
+
   try {
     await connectDB();
     
-    const existing = await User.findOne({ email: 'upload@mfdesigns.com' });
+    const existing = await User.findOne({ email });
     if (existing) {
       console.log('Admin2 user already exists.');
-      console.log('Email: upload@mfdesigns.com | Password: Upload@MF2024');
       process.exit(0);
     }
 
-    await User.create({
-      name: 'MF Upload Admin',
-      email: 'upload@mfdesigns.com',
-      password: 'Upload@MF2024',
-      role: 'admin'
-    });
+    await User.create({ name, email, password, role: 'admin' });
 
-    console.log('Admin2 user created successfully.');
-    console.log('Email: upload@mfdesigns.com');
-    console.log('Password: Upload@MF2024');
+    console.log(`Admin2 user created. Email: ${email}`);
     console.log('Panel URL: /admin2');
     process.exit(0);
   } catch (error) {
@@ -33,3 +34,4 @@ const seedAdmin2 = async () => {
 };
 
 seedAdmin2();
+

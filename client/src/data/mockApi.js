@@ -17,16 +17,9 @@ export const mockApi = {
         params.cursor = cursor;
       }
       
+      // Send slug directly to backend — no need to fetch all categories first
       if (handle && handle !== 'all') {
-        try {
-          const { data: categories } = await api.get('/categories');
-          const matchedCategory = categories.find(c => (c.slug || c.name.toLowerCase().replace(/\s+/g, '-')) === handle);
-          if (matchedCategory) {
-            params.category = matchedCategory._id;
-          }
-        } catch (e) {
-          // If categories fail, skip filter
-        }
+        params.categorySlug = handle;
       }
 
       const { data } = await api.get('/products', { params });
