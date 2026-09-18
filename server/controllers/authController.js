@@ -87,7 +87,13 @@ const loginUser = async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
-    // Correct password - Trigger 2FA (OTP)
+    // If user is admin or superadmin, bypass OTP and log them in instantly
+    if (user.role === 'admin' || user.role === 'superadmin') {
+      await generateTokens(res, user);
+      return res.json({ _id: user._id, name: user.name, email: user.email, role: user.role, requiresOtp: false });
+    }
+
+    // Regular customers - Trigger 2FA (OTP)
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     user.otpCode = otpCode;
     user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);

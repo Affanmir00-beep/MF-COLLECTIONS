@@ -28,6 +28,11 @@ const AuthPage = () => {
         const { data } = await apiClient.post('/auth/login', { email, password });
         if (data.requiresOtp) {
           navigate('/otp-verify', { state: { email, returnUrl: location.state?.from?.pathname } });
+        } else {
+          // Direct login (Admin)
+          setUserInfo(data);
+          const defaultAdminRoute = (data.role === 'admin' || data.role === 'superadmin') ? '/admin/dashboard' : '/';
+          navigate(location.state?.from?.pathname || defaultAdminRoute);
         }
       } else {
         // Signup Flow
