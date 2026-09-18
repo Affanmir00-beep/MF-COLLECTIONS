@@ -25,9 +25,15 @@ const AdminRouteGuard = () => {
   const can = (section) => !isRestricted || perms.includes(section);
 
   // If restricted admin tries to access a page they shouldn't, redirect to products
+  // Also catch the bare /admin path which renders a blank <Outlet />
+  const isAdminRoot = location.pathname === '/admin' || location.pathname === '/admin/';
   const restrictedPaths = ['/admin/dashboard', '/admin/storefront', '/admin/categories', '/admin/orders'];
-  if (isRestricted && restrictedPaths.includes(location.pathname)) {
-    return <Navigate to="/admin/products" replace />;
+  if (isRestricted && (isAdminRoot || restrictedPaths.includes(location.pathname))) {
+    return <Navigate to={`/admin/${perms[0]}`} replace />;
+  }
+  // Redirect full admins from bare /admin to dashboard
+  if (!isRestricted && isAdminRoot) {
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   // Nav items definition
