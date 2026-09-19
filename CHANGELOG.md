@@ -26,6 +26,11 @@ This document serves as a persistent record of the core architectural decisions,
 - **Issue**: There were two separate admin panels (`AdminPanel2.jsx` and the main Admin Dashboard).
 - **Fix**: Deleted `AdminPanel2.jsx`. The existing `AdminRouteGuard.jsx` handles restricted access (e.g., "upload_only" roles) and redirects them securely without needing a separate duplicate panel.
 
+### 4. Fixed Admin Product Upload Image Previews (CSP Issue)
+- **Issue**: When uploading new images in the Admin Control Panel, the local preview thumbnails showed as broken image icons (`New 0`, `New 1`).
+- **Cause**: Vercel's `vercel.json` Content Security Policy (CSP) omitted the `blob:` schema in the `img-src` directive. This caused the browser to aggressively block React's `URL.createObjectURL(file)` blob previews.
+- **Fix**: Appended `blob:` to `img-src` inside `client/vercel.json`. The backend is already correctly configured to seamlessly stream these images to Cloudinary via `multer.memoryStorage()`.
+
 ## Admin Roles & Credentials
 
 **1. Full Superadmin (Access to Everything)**
