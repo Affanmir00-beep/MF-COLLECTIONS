@@ -32,12 +32,16 @@ export const optimizeImageUrl = (url, options = {}) => {
       return url;
     }
 
+    const isVideo = url.includes('/video/upload/');
+
     const transformations = [];
 
     // Format & Quality
     if (format) transformations.push(`f_${format}`);
     if (quality) transformations.push(`q_${quality}`);
-    if (progressive) transformations.push('fl_progressive');
+    
+    // fl_progressive is strictly for images. Cloudinary rejects it for videos.
+    if (progressive && !isVideo) transformations.push('fl_progressive');
 
     // Dimensions
     if (width) transformations.push(`w_${width}`);

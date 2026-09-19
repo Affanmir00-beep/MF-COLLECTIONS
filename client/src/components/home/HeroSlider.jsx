@@ -84,8 +84,12 @@ const HeroSlider = ({ data = [], loading = false }) => {
                 preload={isActive ? 'auto' : 'metadata'}
                 fetchpriority={isActive ? "high" : "auto"}
                 onEnded={nextSlide}
-                onError={() => {
-                  if (total > 1) nextSlide();
+                onError={(e) => {
+                  // Safeguard against infinite loop if ALL videos are broken
+                  e.target.dataset.failed = "true";
+                  if (total > 1) {
+                    setTimeout(() => nextSlide(), 1000); // Wait 1 second before trying next to prevent main thread lockup
+                  }
                 }}
                 className="w-full h-full object-cover block"
               />
