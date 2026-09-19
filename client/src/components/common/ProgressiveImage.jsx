@@ -25,6 +25,11 @@ const ProgressiveImage = ({
     if (onLoad) onLoad(e);
   };
 
+  const handleError = (e) => {
+    setIsLoaded(true); // Remove skeleton
+    console.error('Image failed to load:', src);
+  };
+
   return (
     <div className={`relative overflow-hidden ${containerClassName}`}>
       {/* Skeleton / Shimmer background */}
@@ -38,6 +43,7 @@ const ProgressiveImage = ({
         loading={priority ? "eager" : "lazy"}
         fetchpriority={priority ? "high" : "auto"}
         onLoad={handleLoad}
+        onError={handleError}
         className={`${className} ${!isLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
         {...props}
       />

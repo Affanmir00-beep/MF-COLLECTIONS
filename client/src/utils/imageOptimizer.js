@@ -43,7 +43,7 @@ export const optimizeImageUrl = (url, options = {}) => {
     if (width) transformations.push(`w_${width}`);
     if (height) transformations.push(`h_${height}`);
     if (crop && (width || height)) transformations.push(`c_${crop}`);
-    transformations.push('dpr_auto');
+    // Removed dpr_auto to prevent 400 errors on free Cloudinary accounts
 
     const transformStr = transformations.join(',');
 
