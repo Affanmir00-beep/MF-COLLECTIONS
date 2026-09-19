@@ -13,16 +13,18 @@ const seedData = async () => {
     await Product.deleteMany();
     
     // Create an admin user first
-    let admin = await User.findOne({ email: 'admin@vanya.pk' });
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@mfdesigns.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'password123';
+    let admin = await User.findOne({ email: adminEmail });
     if (!admin) {
       admin = await User.create({
-        name: 'Vanya Admin',
-        email: 'admin@vanya.pk',
-        password: 'password123',
+        name: process.env.ADMIN_NAME || 'MF Admin',
+        email: adminEmail,
+        password: adminPassword,
         role: 'superadmin',
         isVerified: true
       });
-      console.log('Admin user created: admin@vanya.pk / password123');
+      console.log(`Admin user created: ${adminEmail}`);
     }
 
     const categories = [
