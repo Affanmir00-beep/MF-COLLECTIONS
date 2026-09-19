@@ -22,6 +22,7 @@ const HomePage = () => {
         setConfig(data);
       } catch (err) {
         console.error('Failed to load homepage config', err);
+        setConfig({ error: err.message });
       } finally {
         setLoading(false);
       }
@@ -30,6 +31,16 @@ const HomePage = () => {
   }, []);
 
   // Render all sections immediately — each component shows its own skeleton while loading=true
+  if (config?.error) {
+    return (
+      <div className="min-h-[50vh] flex flex-col items-center justify-center p-8 text-center bg-gray-50">
+        <h2 className="text-2xl font-serif text-red-600 mb-4">Error Loading Storefront</h2>
+        <p className="text-gray-600 font-sans">{config.error}</p>
+        <p className="text-xs mt-4 text-gray-400">If you are using the free Render tier, please wait 50 seconds and refresh.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="animate-fade-in">
       <HeroSlider data={config?.heroSlider} loading={loading} />

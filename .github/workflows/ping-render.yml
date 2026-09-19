@@ -1,0 +1,16 @@
+name: Ping Render Backend 24/7
+
+on:
+  schedule:
+    # Run every 10 minutes to prevent Render Free Tier from sleeping
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping API
+        run: |
+          curl -sS https://mf-collections.onrender.com/api/v1/content/homepage > /dev/null
+          echo "Pinged Render successfully!"
