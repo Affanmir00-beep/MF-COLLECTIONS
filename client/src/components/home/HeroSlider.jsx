@@ -16,16 +16,6 @@ const HeroSlider = ({ data = [], loading = false }) => {
   const slides = (data || []).filter(s => s && (s.videoUrl || s.image));
   const total = slides.length;
 
-  // Show skeleton while loading or no data yet
-  if (loading || slides.length === 0) {
-    return (
-      <div className="w-full aspect-video md:h-[85vh] bg-gray-100 animate-pulse relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
-      </div>
-    );
-  }
-
-
   const nextSlide = useCallback(() => {
     if (total <= 1) {
       if (activeVideoRef.current) {
@@ -57,6 +47,15 @@ const HeroSlider = ({ data = [], loading = false }) => {
       return () => clearTimeout(timer);
     }
   }, [current, slides, total, nextSlide]);
+
+  // Show skeleton while loading or no data yet
+  if (loading || slides.length === 0) {
+    return (
+      <div className="w-full aspect-video md:h-[85vh] bg-gray-100 animate-pulse relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+      </div>
+    );
+  }
 
   if (!slides || slides.length === 0) return null;
 
