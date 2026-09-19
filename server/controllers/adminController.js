@@ -94,15 +94,17 @@ const deleteProduct = asyncHandler(async (req, res) => {
     await logAction({ actor: req.user._id, action: 'PRODUCT_SOFT_DELETE', entityType: 'Product', entityId: product._id });
     res.json({ message: 'Product archived (soft-deleted because it appears in orders)' });
   } else {
+    const destroyPromises = [];
     for (const img of product.images) {
       if (img.publicId && !img.publicId.startsWith('local-')) {
-        try {
-          await cloudinary.uploader.destroy(img.publicId);
-        } catch (e) {
-          console.warn('Cloudinary product image delete ignored:', e.message);
-        }
+        destroyPromises.push(
+          cloudinary.uploader.destroy(img.publicId).catch(e => {
+            console.warn('Cloudinary product image delete ignored:', e.message);
+          })
+        );
       }
     }
+    await Promise.all(destroyPromises);
     await product.deleteOne();
     await logAction({ actor: req.user._id, action: 'PRODUCT_HARD_DELETE', entityType: 'Product', entityId: product._id });
     res.json({ message: 'Product permanently deleted' });
@@ -113,7 +115,11 @@ const getAdminProducts = asyncHandler(async (req, res) => {
   const pageSize = Number(req.query.limit) || 20;
   const page = Number(req.query.page) || 1;
   const filter = {};
-  if (req.query.status) filter.status = req.query.status;
+  if (req.query.status) {
+    filter.status = req.query.status;
+  } else {
+    filter.status = { $ne: 'archived' };
+  }
   if (req.query.category) filter.category = req.query.category;
   
   const count = await Product.countDocuments(filter);

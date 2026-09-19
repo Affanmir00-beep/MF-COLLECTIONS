@@ -86,6 +86,9 @@ const AdminProducts = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminProducts'] });
+    },
+    onError: (err) => {
+      alert(err.response?.data?.message || err.message || 'Error deleting product');
     }
   });
 

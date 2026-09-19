@@ -336,7 +336,7 @@ const ProductModal = ({
             disabled={isPending}
             className="w-full bg-[#111111] text-white py-4 text-xs uppercase tracking-widest hover:bg-black transition-colors disabled:opacity-50 mt-4"
           >
-            {isPending ? 'Saving...' : 'Save Product'}
+            {isPending ? 'Uploading & Saving (This may take a moment)...' : 'Save Product'}
           </button>
         </form>
       </div>
