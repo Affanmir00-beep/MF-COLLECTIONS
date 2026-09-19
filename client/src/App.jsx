@@ -33,7 +33,6 @@ const AdminHomePageConfig = lazy(() => import('./pages/admin/AdminHomePage'));
 const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
 const AdminCategories = lazy(() => import('./pages/admin/AdminCategories'));
 const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'));
-const AdminPanel2 = lazy(() => import('./pages/admin/AdminPanel2'));
 
 function App() {
   const isNavOpen = useUIStore(state => state.isNavOpen);
@@ -50,9 +49,6 @@ function App() {
       <div className="flex flex-col min-h-screen font-sans bg-white text-[#111111] overflow-x-hidden">
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-sans tracking-widest uppercase">Loading...</div>}>
           <Routes>
-            {/* Admin Panel 2 - Standalone product upload portal */}
-            <Route path="/admin2" element={<AdminPanel2 />} />
-
             {/* Protected Admin Routes (Admin Layout applied inside Guard) */}
             <Route path="/admin" element={<AdminRouteGuard />}>
               <Route path="dashboard" element={<AdminDashboard />} />
