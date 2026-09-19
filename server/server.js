@@ -29,10 +29,10 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "res.cloudinary.com", "http://localhost:*", "https://*"],
+      imgSrc: ["'self'", "data:", "res.cloudinary.com", "https://*"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      connectSrc: ["'self'", "http://localhost:*", "https://*"],
+      connectSrc: ["'self'", "https://*"],
     },
   },
 }));
@@ -48,10 +48,8 @@ app.use(cors({
     if (!origin) return callback(null, true);
     const configured = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/+$/, '') : null;
     const allowed = [
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:5175',
-      configured
+      configured,
+      'https://mf-collections.vercel.app'
     ].filter(Boolean);
 
     if (allowed.includes(origin) || origin.endsWith('.vercel.app')) {

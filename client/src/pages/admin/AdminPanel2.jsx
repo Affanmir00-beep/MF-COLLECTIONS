@@ -6,7 +6,7 @@ import { Plus, Minus, Trash2, Upload, CheckCircle, LogOut, Package, Eye, EyeOff 
 // ── API base ──────────────────────────────────────────────────────────────────
 const API_BASE = import.meta.env.VITE_API_URL
   ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
-  : 'http://localhost:5000/api/v1';
+  : 'https://mf-collections.onrender.com/api/v1';
 
 const api = axios.create({ baseURL: API_BASE, withCredentials: true });
 
