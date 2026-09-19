@@ -273,7 +273,17 @@ const AdminProducts = () => {
                     <td className="px-6 py-4">
                       <div className="flex gap-3 text-gray-400">
                         <button onClick={() => handleOpenModal(product)} className="hover:text-blue-600 transition-colors"><Edit size={16} /></button>
-                        <button onClick={() => handleDelete(product._id)} className="hover:text-red-600 transition-colors"><Trash2 size={16} /></button>
+                        <button 
+                          onClick={() => handleDelete(product._id)} 
+                          className="hover:text-red-600 transition-colors disabled:opacity-50"
+                          disabled={deleteMutation.isPending && deleteMutation.variables === product._id}
+                        >
+                          {deleteMutation.isPending && deleteMutation.variables === product._id ? (
+                            <span className="text-xs">...</span>
+                          ) : (
+                            <Trash2 size={16} />
+                          )}
+                        </button>
                       </div>
                     </td>
                   </tr>
