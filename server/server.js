@@ -25,6 +25,7 @@ app.set('etag', 'strong');
 
 // Security Middlewares
 app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
