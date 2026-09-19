@@ -35,17 +35,19 @@ const ProductCard = ({ product, fillHeight = false }) => {
         to={productUrl}
         className={`block relative overflow-hidden bg-gray-50 ${fillHeight ? 'flex-1 min-h-0' : 'aspect-[3/4]'}`}
       >
-        <ProgressiveImage
+        <img
           src={optimizedImg1} 
           alt={product.title || product.sku} 
-          priority={false} // Adjust depending on where it's rendered, but usually false for grids
+          loading="lazy"
+          decoding="async"
           className={`w-full h-full object-cover transition-opacity duration-500 absolute inset-0 ${hasHoverImage ? 'group-hover/card:opacity-0' : ''}`}
         />
         {hasHoverImage && optimizedImg2 && (
-          <ProgressiveImage
+          <img
             src={optimizedImg2} 
             alt={`${product.title || product.sku} alternate`} 
-            priority={false}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover transition-opacity duration-500 absolute inset-0 opacity-0 group-hover/card:opacity-100"
           />
         )}

@@ -31,7 +31,7 @@ const ProgressiveImage = ({
   };
 
   return (
-    <div className={`relative overflow-hidden ${containerClassName}`}>
+    <div className={`relative overflow-hidden w-full h-full ${containerClassName}`}>
       {/* Skeleton / Shimmer background */}
       {!isLoaded && (
         <div className="absolute inset-0 bg-gray-200 animate-pulse" />

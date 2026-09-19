@@ -30,10 +30,12 @@ const CollectionsGrid = ({ data = [], loading = false }) => {
             to={col.link}
             className="relative group overflow-hidden block aspect-[4/5] bg-gray-100"
           >
-            <ProgressiveImage
+            <img
               src={optimizeImageUrl(col.image, { width: 600, quality: 'auto:good' })}
               alt={col.title}
-              priority={idx < 2}
+              loading={idx < 2 ? "eager" : "lazy"}
+              fetchpriority={idx < 2 ? "high" : "auto"}
+              decoding="async"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             {/* Dark overlay for text legibility */}
