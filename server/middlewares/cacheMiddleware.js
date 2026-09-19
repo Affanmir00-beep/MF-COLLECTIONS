@@ -23,7 +23,7 @@ const cacheResponse = (ttlSeconds = 300, prefix = '') => {
     if (cachedEntry) {
       if (now < cachedEntry.expiresAt) {
         res.setHeader('X-Cache', 'HIT');
-        res.setHeader('Cache-Control', `public, max-age=${ttlSeconds}, stale-while-revalidate=120`);
+        res.setHeader('Cache-Control', 'no-cache, must-revalidate');
         return res.json(cachedEntry.data);
       }
       // Expired entry
@@ -41,7 +41,7 @@ const cacheResponse = (ttlSeconds = 300, prefix = '') => {
           expiresAt: Date.now() + ttlSeconds * 1000,
         });
         res.setHeader('X-Cache', 'MISS');
-        res.setHeader('Cache-Control', `public, max-age=${ttlSeconds}, stale-while-revalidate=120`);
+        res.setHeader('Cache-Control', 'no-cache, must-revalidate');
       }
       return originalJson(data);
     };

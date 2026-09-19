@@ -184,6 +184,8 @@ const AdminHomePage = () => {
           [section]: { ...formData[section], [field]: imageUrl, publicId: publicId }
         });
       }
+      setSuccess('Media uploaded successfully! Click "Save Changes" at the top to publish.');
+      setTimeout(() => setSuccess(''), 5000);
     } catch (err) {
       if (err.response?.status === 401) {
         setError('Your session has expired or you are not logged in as admin. Please log in again.');

@@ -32,7 +32,10 @@ export const optimizeImageUrl = (url, options = {}) => {
       return url;
     }
 
-    const isVideo = url.includes('/video/upload/');
+    const isVideo = url.includes('/video/upload/') || url.match(/\.(mp4|webm|mov|ogg|m4v)($|\?)/i);
+    if (isVideo) {
+      return url; // Videos should not receive image transformations
+    }
 
     const transformations = [];
 

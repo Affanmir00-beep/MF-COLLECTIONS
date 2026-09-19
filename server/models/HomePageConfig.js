@@ -10,19 +10,19 @@ const slideSchema = new mongoose.Schema({
 });
 
 const collectionSchema = new mongoose.Schema({
-  image: { type: String, required: true },
+  image: { type: String, default: '' },
   publicId: { type: String },
-  title: { type: String, required: true },
-  link: { type: String, required: true, default: '/' },
+  title: { type: String, default: '' },
+  link: { type: String, default: '/' },
 });
 
 const promoSchema = new mongoose.Schema({
-  image: { type: String, required: true },
+  image: { type: String, default: '' },
   publicId: { type: String },
-  title: { type: String, required: true },
-  subtitle: { type: String },
-  linkText: { type: String, required: true },
-  link: { type: String, required: true, default: '/' },
+  title: { type: String, default: '' },
+  subtitle: { type: String, default: '' },
+  linkText: { type: String, default: 'Shop Now' },
+  link: { type: String, default: '/' },
 });
 
 const videoSchema = new mongoose.Schema({
@@ -34,18 +34,18 @@ const videoSchema = new mongoose.Schema({
 });
 
 const formalsSchema = new mongoose.Schema({
-  image: { type: String, required: true },
+  image: { type: String, default: '' },
   publicId: { type: String },
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  buttonText: { type: String, required: true },
-  link: { type: String, required: true, default: '/' },
+  title: { type: String, default: '' },
+  description: { type: String, default: '' },
+  buttonText: { type: String, default: 'EXPLORE' },
+  link: { type: String, default: '/' },
 });
 
 const spottedSchema = new mongoose.Schema({
-  image: { type: String, required: true },
+  image: { type: String, default: '' },
   publicId: { type: String },
-  link: { type: String, required: true, default: '/' },
+  link: { type: String, default: '/' },
 });
 
 const bannerSchema = new mongoose.Schema({

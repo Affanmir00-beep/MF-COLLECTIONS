@@ -16,6 +16,7 @@ const CollectionsGridSkeleton = () => (
   </div>
 );
 
+
 const CollectionsGrid = ({ data = [], loading = false }) => {
   if (loading) return <CollectionsGridSkeleton />;
   if (!data || data.length === 0) return null;

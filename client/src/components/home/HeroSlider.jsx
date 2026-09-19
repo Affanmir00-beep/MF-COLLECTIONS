@@ -75,7 +75,7 @@ const HeroSlider = ({ data = [], loading = false }) => {
             {isVideo ? (
               <video
                 ref={isActive ? activeVideoRef : null}
-                src={optimizeImageUrl(slide.videoUrl, { quality: 'auto:good' })}
+                src={slide.videoUrl}
                 poster={optimizeImageUrl(slide.image, { width: 1200, quality: 'auto:good' })}
                 muted
                 playsInline
