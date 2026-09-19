@@ -15,8 +15,7 @@ const {
   googleLogin,
   refreshAuth,
   logoutUser,
-  loginAdmin,
-  seedAdminController,
+  loginAdmin
 } = require('../controllers/authController');
 
 router.post('/signup', signupUser);
@@ -30,6 +29,6 @@ router.post('/logout', logoutUser);
 router.post('/admin/login', authLimiter, validate(loginSchema), loginAdmin);
 
 // Seed or ensure admin account is ready
-router.get('/seed-admin', seedAdminController);
+
 
 module.exports = router;

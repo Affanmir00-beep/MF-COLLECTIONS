@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { optimizeImageUrl } from '../../utils/imageOptimizer';
+import { optimizeImageUrl, generateSrcSet } from '../../utils/imageOptimizer';
 
 /**
  * HeroSlider — 16:9 Full-Bleed Widescreen Video Banner (Matching Vanya)
@@ -92,6 +92,8 @@ const HeroSlider = ({ data = [], loading = false }) => {
             ) : (
               <img
                 src={optimizeImageUrl(slide.image, { width: 1200, quality: 'auto:good' })}
+                srcSet={generateSrcSet(slide.image, [640, 900, 1200, 1920])}
+                sizes="100vw"
                 alt={slide.title || 'Hero Slide'}
                 fetchpriority={isActive ? "high" : "auto"}
                 loading={isActive ? "eager" : "lazy"}

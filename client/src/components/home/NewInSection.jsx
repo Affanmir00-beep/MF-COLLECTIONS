@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { mockApi } from '../../data/mockApi';
-import { optimizeImageUrl } from '../../utils/imageOptimizer';
+import { optimizeImageUrl, generateSrcSet } from '../../utils/imageOptimizer';
 
 /* ─── Individual product card — uses named group/card so hover is isolated ─── */
 const NewInCard = ({ product }) => {
@@ -21,7 +21,9 @@ const NewInCard = ({ product }) => {
   const sizeLabel = isFreeSize ? 'FREE SIZE' : availSizes.join('  ');
 
   const img1 = optimizeImageUrl(images[0], { width: 600, quality: 'auto:good' });
+  const srcSet1 = generateSrcSet(images[0]);
   const img2 = hasHover ? optimizeImageUrl(images[1], { width: 600, quality: 'auto:good' }) : null;
+  const srcSet2 = hasHover ? generateSrcSet(images[1]) : null;
 
   return (
     /* group/card — named group so hover ONLY affects THIS card */
@@ -31,6 +33,8 @@ const NewInCard = ({ product }) => {
         {/* Primary image */}
         <img
           src={img1}
+          srcSet={srcSet1}
+          sizes="(max-width: 640px) 50vw, 25vw"
           alt={product.title || product.sku}
           loading="lazy"
           decoding="async"
@@ -41,6 +45,8 @@ const NewInCard = ({ product }) => {
         {hasHover && img2 && (
           <img
             src={img2}
+            srcSet={srcSet2}
+            sizes="(max-width: 640px) 50vw, 25vw"
             alt={`${product.title || product.sku} alt`}
             loading="lazy"
             decoding="async"
@@ -149,8 +155,11 @@ const NewInSection = ({ data, loading: parentLoading = false }) => {
         >
           <img
             src={optimizeImageUrl(data?.image || '/images/prod5.jpg', { width: 600, quality: 'auto:good' })}
+            srcSet={generateSrcSet(data?.image || '/images/prod5.jpg')}
+            sizes="(max-width: 640px) 100vw, 30vw"
             alt={data?.title || 'New In'}
             loading="lazy"
+            fetchpriority="high"
             decoding="async"
             className="w-full h-full object-cover object-top transition-transform duration-700 hover:scale-[1.04]"
           />

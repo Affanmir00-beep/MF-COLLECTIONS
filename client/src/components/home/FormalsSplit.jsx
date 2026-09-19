@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { optimizeImageUrl } from '../../utils/imageOptimizer';
+import { optimizeImageUrl, generateSrcSet } from '../../utils/imageOptimizer';
 
 const FormalsSplit = ({ data }) => {
   if (!data) return null;
@@ -29,6 +29,8 @@ const FormalsSplit = ({ data }) => {
           <div className="w-full md:w-1/2 relative h-[50vh] md:h-auto order-1 md:order-2 overflow-hidden group bg-gray-100">
             <img 
               src={optimizeImageUrl(data.image, { width: 1000, quality: 'auto:good' })} 
+              srcSet={generateSrcSet(data.image)}
+              sizes="(max-width: 768px) 100vw, 50vw"
               alt={data.title} 
               loading="lazy"
               decoding="async"

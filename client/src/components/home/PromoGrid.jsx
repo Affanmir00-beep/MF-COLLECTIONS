@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { optimizeImageUrl } from '../../utils/imageOptimizer';
+import { optimizeImageUrl, generateSrcSet } from '../../utils/imageOptimizer';
 
 const PromoGrid = ({ data = [] }) => {
   if (!data || data.length < 3) return null;
@@ -19,6 +19,8 @@ const PromoGrid = ({ data = [] }) => {
           >
             <img 
               src={optimizeImageUrl(leftPromo.image, { width: 1000, quality: 'auto:good' })} 
+              srcSet={generateSrcSet(leftPromo.image)}
+              sizes="(max-width: 768px) 100vw, 50vw"
               alt={leftPromo.title}
               loading="lazy"
               decoding="async"
@@ -42,6 +44,8 @@ const PromoGrid = ({ data = [] }) => {
             >
               <img 
                 src={optimizeImageUrl(topRightPromo.image, { width: 800, quality: 'auto:good' })} 
+                srcSet={generateSrcSet(topRightPromo.image)}
+                sizes="(max-width: 768px) 100vw, 50vw"
                 alt={topRightPromo.title}
                 loading="lazy"
                 decoding="async"
@@ -60,6 +64,8 @@ const PromoGrid = ({ data = [] }) => {
             >
               <img 
                 src={optimizeImageUrl(bottomRightPromo.image, { width: 800, quality: 'auto:good' })} 
+                srcSet={generateSrcSet(bottomRightPromo.image)}
+                sizes="(max-width: 768px) 100vw, 50vw"
                 alt={bottomRightPromo.title}
                 loading="lazy"
                 decoding="async"
